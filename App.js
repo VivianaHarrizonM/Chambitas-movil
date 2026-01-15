@@ -25,7 +25,7 @@ function HomeStack() {
       <Stack.Screen
         name="HomeMain"
         component={HomeScreen}
-        options={{ title: 'OficiosYA' }}
+        options={{ title: 'Chambitas' }}
       />
       <Stack.Screen
         name="ProfessionalsList"

@@ -14,7 +14,7 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>OficiosYA</Text>
+      <Text style={styles.title}>Chambitas</Text>
       <Text style={styles.subtitle}>Hola, Viviana 👋</Text>
       <Text style={styles.subtitleSmall}>Inicia sesión para encontrar profesionales.</Text>
 
