@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "demo-rn",
-    "slug": "demo-rn",
+    "name": "chambitas",
+    "slug": "chambitas",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

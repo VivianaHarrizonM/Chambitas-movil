@@ -121,7 +121,7 @@ export default function CreateRequestScreen({ route, navigation }) {
         <Text style={styles.buttonPrimaryText}>Confirmar solicitud</Text>
       </TouchableOpacity>
       <Text style={styles.hint}>
-        Para la demo, el servicio pasa directo a “En camino”.
+        El profesional fue notificado y se dirigirá a tu domicilio.
       </Text>
     </View>
   );

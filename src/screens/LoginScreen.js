@@ -41,7 +41,7 @@ export default function LoginScreen() {
       </TouchableOpacity>
 
       <Text style={styles.footerText}>
-        Para la demo, cualquier contraseña funciona 😉
+        Ingresa tus datos para continuar.
       </Text>
     </View>
   );

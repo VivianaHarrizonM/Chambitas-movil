@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useAppContext } from '../context/AppContext';
 
 export default function ProfileScreen() {
+  const navigation = useNavigation();
   const { user, logout } = useAppContext();
 
   return (
@@ -27,6 +28,13 @@ export default function ProfileScreen() {
 
       <TouchableOpacity style={styles.button} onPress={logout}>
         <Text style={styles.buttonText}>Cerrar sesión</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => navigation.navigate('PrivacyPolicy')}>
+        <Text style={styles.link}>Política de privacidad</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => navigation.navigate('Terms')}>
+        <Text style={styles.link}>Términos y condiciones</Text>
       </TouchableOpacity>
     </View>
   );
@@ -94,4 +102,8 @@ const styles = StyleSheet.create({
     color: '#fef2f2',
     fontWeight: '600',
   },
+  link: {
+  color: '#22c55e',
+  marginTop: 8,
+},
 });

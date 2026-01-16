@@ -1,6 +1,15 @@
-import React, { createContext, useContext, useState, useMemo } from 'react';
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
+
+const STORAGE_KEYS = {
+  AUTH: 'AUTH_STATE',
+  USER: 'USER_DATA',
+  SERVICES: 'SERVICES_DATA',
+};
 
 const AppContext = createContext();
+
 
 const INITIAL_PROFESSIONALS = [
   {
@@ -46,13 +55,19 @@ export function AppProvider({ children }) {
   const [services, setServices] = useState([]); // solicitudes de servicio
 
   const login = (email) => {
-    setUser((prev) => ({ ...prev, email: email || prev.email }));
-    setIsAuthenticated(true);
-  };
+  setUser((prev) => ({ ...prev, email: email || prev.email }));
+  setIsAuthenticated(true);
+};
 
-  const logout = () => {
-    setIsAuthenticated(false);
-  };
+const logout = async () => {
+  setIsAuthenticated(false);
+  setServices([]);
+  await AsyncStorage.multiRemove([
+    STORAGE_KEYS.AUTH,
+    STORAGE_KEYS.USER,
+    STORAGE_KEYS.SERVICES,
+  ]);
+};
 
   const createServiceRequest = ({
     professionalId,
@@ -83,6 +98,36 @@ export function AppProvider({ children }) {
       prev.map((s) => (s.id === serviceId ? { ...s, status } : s))
     );
   };
+
+  useEffect(() => {
+  const loadData = async () => {
+    try {
+      const auth = await AsyncStorage.getItem(STORAGE_KEYS.AUTH);
+      const userData = await AsyncStorage.getItem(STORAGE_KEYS.USER);
+      const servicesData = await AsyncStorage.getItem(STORAGE_KEYS.SERVICES);
+
+      if (auth === 'true') setIsAuthenticated(true);
+      if (userData) setUser(JSON.parse(userData));
+      if (servicesData) setServices(JSON.parse(servicesData));
+    } catch (e) {
+      console.log('Error loading data', e);
+    }
+  };
+
+  loadData();
+}, []);
+
+useEffect(() => {
+  AsyncStorage.setItem(STORAGE_KEYS.AUTH, isAuthenticated ? 'true' : 'false');
+}, [isAuthenticated]);
+
+useEffect(() => {
+  AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+}, [user]);
+
+useEffect(() => {
+  AsyncStorage.setItem(STORAGE_KEYS.SERVICES, JSON.stringify(services));
+}, [services]);
 
   const value = useMemo(
     () => ({

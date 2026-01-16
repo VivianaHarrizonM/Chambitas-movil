@@ -15,6 +15,8 @@ import CreateRequestScreen from './src/screens/CreateRequestScreen';
 import ServiceInProgressScreen from './src/screens/ServiceInProgressScreen';
 import MyServicesScreen from './src/screens/MyServicesScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
+import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
+import TermsScreen from './src/screens/TermsScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -22,6 +24,7 @@ const Tab = createBottomTabNavigator();
 function HomeStack() {
   return (
     <Stack.Navigator>
+      
       <Stack.Screen
         name="HomeMain"
         component={HomeScreen}
@@ -49,7 +52,19 @@ function HomeStack() {
         component={ServiceInProgressScreen}
         options={{ title: 'Servicio en curso' }}
       />
+      <Stack.Screen
+        name="PrivacyPolicy"
+        component={PrivacyPolicyScreen}
+        options={{ title: 'Privacidad' }}
+      />
+
+      <Stack.Screen
+        name="Terms"
+        component={TermsScreen}
+        options={{ title: 'Términos' }}
+      />
     </Stack.Navigator>
+    
   );
 }
 

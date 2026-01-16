@@ -54,10 +54,10 @@ export default function ServiceInProgressScreen({ route, navigation }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Acciones</Text>
         <TouchableOpacity style={styles.secondaryButton}>
-          <Text style={styles.secondaryButtonText}>Llamar (dummy)</Text>
+          <Text style={styles.secondaryButtonText}>Llamar al profesional</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.secondaryButton}>
-          <Text style={styles.secondaryButtonText}>Abrir chat (dummy)</Text>
+          <Text style={styles.secondaryButtonText}>Abrir chat</Text>
         </TouchableOpacity>
       </View>
 
@@ -70,7 +70,7 @@ export default function ServiceInProgressScreen({ route, navigation }) {
           </Text>
         </TouchableOpacity>
       ) : (
-        <Text style={styles.finishedText}>Servicio finalizado ✅ (demo)</Text>
+        <Text style={styles.finishedText}>Servicio finalizado ✅</Text>
       )}
     </View>
   );

@@ -42,10 +42,12 @@ export default function ProfessionalDetailScreen({ route, navigation }) {
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.buttonSecondary} disabled>
-        <Text style={styles.buttonSecondaryText}>Enviar mensaje (dummy)</Text>
+        <Text style={styles.buttonSecondaryText}>Enviar mensaje (próximamente)</Text>
       </TouchableOpacity>
 
-      <Text style={styles.hint}>Para la demo, el chat aún no está conectado.</Text>
+      <Text style={styles.hint}>
+        La función de mensajería estará disponible en una próxima actualización.
+      </Text>
     </View>
   );
 }
