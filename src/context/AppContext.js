@@ -54,16 +54,43 @@ export function AppProvider({ children }) {
     address: '',
   });
 
+
   
   const [professionals] = useState(INITIAL_PROFESSIONALS);
   const [services, setServices] = useState([]); // solicitudes de servicio
 
-  const login = async ({ name = '', email }) => {
+  const login = async ({ email, password }) => {
+    if (!email || !password) {
+      alert('Ingresa correo y contraseña');
+      return;
+    }
+
+    const storedUser = await AsyncStorage.getItem(STORAGE_KEYS.USER);
+
+    if (!storedUser) {
+      alert('No existe ninguna cuenta, regístrate primero');
+      return;
+    }
+
+    const userData = JSON.parse(storedUser);
+
+    if (userData.email !== email || userData.password !== password) {
+      alert('Correo o contraseña incorrectos');
+      return;
+    }
+
+    await AsyncStorage.setItem(STORAGE_KEYS.AUTH, 'true');
+
+    setUser(userData);
+    setIsAuthenticated(true);
+  };
+  const register = async ({ name, email, password, phone, address }) => {
     const userData = {
       name,
       email,
-      phone: '',
-      address: '',
+      password,
+      phone: phone || '',
+      address: address || '',
     };
 
     await AsyncStorage.setItem(
@@ -76,6 +103,7 @@ export function AppProvider({ children }) {
     setUser(userData);
     setIsAuthenticated(true);
   };
+
 
   const logout = async () => {
     await AsyncStorage.multiRemove([
@@ -118,13 +146,19 @@ export function AppProvider({ children }) {
     return newService;
   };
 
-  const updateUser = async (updates) => {
-  setUser((prev) => ({
-    ...prev,
-    ...updates,
-  }));
-};
+  const updateUser = async (updatedData) => {
+    const updatedUser = {
+      ...user,
+      ...updatedData,
+    };
 
+    setUser(updatedUser);
+    await AsyncStorage.setItem(
+      STORAGE_KEYS.USER,
+      JSON.stringify(updatedUser)
+    );
+  };
+  
   const updateServiceStatus = (serviceId, status) => {
     setServices((prev) =>
       prev.map((s) => (s.id === serviceId ? { ...s, status } : s))
@@ -182,6 +216,7 @@ useEffect(() => {
       professionals,
       services,
       login,
+      register,
       logout,
       createServiceRequest,
       updateServiceStatus,

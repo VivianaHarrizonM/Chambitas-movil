@@ -18,6 +18,7 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
 import TermsScreen from './src/screens/TermsScreen';
 import EditProfileScreen from './src/screens/EditProfileScreen';
+import RegisterScreen from './src/screens/RegisterScreen';
 
 
 
@@ -27,7 +28,6 @@ const Tab = createBottomTabNavigator();
 function HomeStack() {
   return (
     <Stack.Navigator>
-      
       <Stack.Screen
         name="HomeMain"
         component={HomeScreen}
@@ -125,26 +125,31 @@ function AppTabs() {
   );
 }
 
+function AuthStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="Login"
+        component={LoginScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Register"
+        component={RegisterScreen}
+        options={{ title: 'Registro' }}
+      />
+    </Stack.Navigator>
+  );
+}
+
 function RootNavigator() {
   const { isAuthenticated, isLoading } = useAppContext();
 
-  if (isLoading) {
-    return null; 
-  }
+  if (isLoading) return null;
 
   return (
     <NavigationContainer>
-      {isAuthenticated ? (
-        <AppTabs />
-      ) : (
-        <Stack.Navigator>
-          <Stack.Screen
-            name="Login"
-            component={LoginScreen}
-            options={{ headerShown: false }}
-          />
-        </Stack.Navigator>
-      )}
+      {isAuthenticated ? <AppTabs /> : <AuthStack />}
     </NavigationContainer>
   );
 }

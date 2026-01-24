@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAppContext } from '../context/AppContext';
 
+
 export default function ProfileScreen() {
   const navigation = useNavigation();
   const { user, logout } = useAppContext();
@@ -20,7 +21,7 @@ export default function ProfileScreen() {
         <View style={styles.row}>
           <Text style={styles.rowLabel}>Teléfono</Text>
           <Text style={styles.rowValue}>
-            {user?.phone || 'No registrado'}
+            {user.phone || 'No registrado'}
           </Text>
         </View>
 
