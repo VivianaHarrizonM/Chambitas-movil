@@ -1,6 +1,6 @@
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STORAGE_KEYS = {
   AUTH: 'AUTH_STATE',
@@ -9,7 +9,6 @@ const STORAGE_KEYS = {
 };
 
 const AppContext = createContext();
-
 
 const INITIAL_PROFESSIONALS = [
   {
@@ -60,55 +59,52 @@ export function AppProvider({ children }) {
   const [services, setServices] = useState([]); // solicitudes de servicio
 
   const login = async ({ email, password }) => {
-    if (!email || !password) {
-      alert('Ingresa correo y contraseña');
-      return;
-    }
+  const storedUser = await AsyncStorage.getItem(STORAGE_KEYS.USER);
 
-    const storedUser = await AsyncStorage.getItem(STORAGE_KEYS.USER);
+  if (!storedUser) {
+    alert('No existe ninguna cuenta');
+    return;
+  }
 
-    if (!storedUser) {
-      alert('No existe ninguna cuenta, regístrate primero');
-      return;
-    }
+  const userData = JSON.parse(storedUser);
 
-    const userData = JSON.parse(storedUser);
+  console.log('USUARIO GUARDADO:', userData);
+  console.log('LOGIN INTENTO:', email, password);
 
-    if (userData.email !== email || userData.password !== password) {
-      alert('Correo o contraseña incorrectos');
-      return;
-    }
+  if (
+    userData.email !== email ||
+    userData.password !== password
+  ) {
+    alert('Correo o contraseña incorrectos');
+    return;
+  }
 
-    await AsyncStorage.setItem(STORAGE_KEYS.AUTH, 'true');
+  await AsyncStorage.setItem(STORAGE_KEYS.AUTH, 'true');
 
-    setUser(userData);
-    setIsAuthenticated(true);
-  };
-  const register = async ({ name, email, password, phone, address }) => {
-    const userData = {
-      name,
-      email,
-      password,
-      phone: phone || '',
-      address: address || '',
-    };
+  setUser(userData);
+  setIsAuthenticated(true);
+};
 
-    await AsyncStorage.setItem(
-      STORAGE_KEYS.USER,
-      JSON.stringify(userData)
-    );
-
-    await AsyncStorage.setItem(STORAGE_KEYS.AUTH, 'true');
-
-    setUser(userData);
-    setIsAuthenticated(true);
+const register = async ({ name, email, password }) => {
+  const userData = {
+    name,
+    email,
+    password,
+    phone: '',
+    address: '',
   };
 
+  await AsyncStorage.setItem(
+    STORAGE_KEYS.USER,
+    JSON.stringify(userData)
+  );
+
+  alert('Cuenta creada. Ahora inicia sesión');
+};
 
   const logout = async () => {
     await AsyncStorage.multiRemove([
       STORAGE_KEYS.AUTH,
-      STORAGE_KEYS.USER,
       STORAGE_KEYS.SERVICES,
     ]);
 
@@ -139,7 +135,7 @@ export function AppProvider({ children }) {
       whenType,
       date,
       time,
-      status: 'en_camino', // directo a "en camino" para la demo
+      status: 'en_camino', 
       createdAt: new Date().toISOString(),
     };
     setServices((prev) => [newService, ...prev]);
@@ -166,48 +162,42 @@ export function AppProvider({ children }) {
   };
 
   useEffect(() => {
-  const loadData = async () => {
-    try {
-      const auth = await AsyncStorage.getItem(STORAGE_KEYS.AUTH);
-      const userData = await AsyncStorage.getItem(STORAGE_KEYS.USER);
-      const servicesData = await AsyncStorage.getItem(STORAGE_KEYS.SERVICES);
+    const loadData = async () => {
+      try {
+        const auth = await AsyncStorage.getItem(STORAGE_KEYS.AUTH);
+        const userData = await AsyncStorage.getItem(STORAGE_KEYS.USER);
+        const servicesData = await AsyncStorage.getItem(STORAGE_KEYS.SERVICES);
 
-      if (auth === 'true' && userData) {
-        setIsAuthenticated(true);
-        setUser(JSON.parse(userData));
-      } else {
-        setIsAuthenticated(false);
-        setUser({
-          name: '',
-          email: '',
-          phone: '',
-          address: '',
-        });
+        if (auth === 'true' && userData) {
+          setIsAuthenticated(true);
+          setUser(JSON.parse(userData));
+        }
+
+        if (servicesData) setServices(JSON.parse(servicesData));
+      } catch (e) {
+        console.log('Error loading data', e);
+      } finally {
+        setIsLoading(false);
       }
+    };
 
-      if (servicesData) setServices(JSON.parse(servicesData));
-    } catch (e) {
-      console.log('Error loading data', e);
-    } finally {
-      setIsLoading(false); 
-    }
-  };
-
-  loadData();
-}, []);
+    loadData();
+  }, []);
 
 useEffect(() => {
   AsyncStorage.setItem(STORAGE_KEYS.AUTH, isAuthenticated ? 'true' : 'false');
 }, [isAuthenticated]);
 
 useEffect(() => {
-  AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+  if (user?.email) {
+    AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+  }
 }, [user]);
 
 useEffect(() => {
   AsyncStorage.setItem(STORAGE_KEYS.SERVICES, JSON.stringify(services));
 }, [services]);
-
+const isProfileComplete = user.phone && user.address;
   const value = useMemo(
     () => ({
       isAuthenticated,
@@ -221,8 +211,9 @@ useEffect(() => {
       createServiceRequest,
       updateServiceStatus,
       updateUser,
-    }),
-    [isAuthenticated, user, professionals, services]
+      isProfileComplete,
+  }),
+  [isAuthenticated, user, professionals, services]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

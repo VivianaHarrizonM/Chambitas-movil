@@ -8,43 +8,38 @@ export default function RegisterScreen({ navigation }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [phone, setPhone] = useState('');
-  const [address, setAddress] = useState('');
 
   const handleRegister = async () => {
-    if (
-      !name.trim() ||
-      !email.trim() ||
-      !password.trim()
-    ) {
+  if (!name.trim() || !email.trim() || !password.trim()) {
       alert('Completa todos los campos obligatorios');
       return;
     }
 
-    await register({
+  await register({
       name,
       email,
       password,
-      phone,
-      address,
     });
-  };
+
+    navigation.goBack();
+};
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Crear cuenta</Text>
 
       <TextInput
-        placeholder="Nombre"
+        placeholder="Nombre Completo"
         value={name}
         onChangeText={setName}
         style={styles.input}
       />
 
-      <TextInput
+      {/* <TextInput
         placeholder="Teléfono"
         value={phone}
         onChangeText={setPhone}
-        style={styles.input}
+        style={styles.input}}
       />
 
       <TextInput
@@ -52,7 +47,7 @@ export default function RegisterScreen({ navigation }) {
         value={address}
         onChangeText={setAddress}
         style={styles.input}
-      />
+      /> */}
       
       <TextInput
         placeholder="Email"
@@ -81,15 +76,16 @@ export default function RegisterScreen({ navigation }) {
   );
 }
 const COLORS = {
-    primary: '#F4A300',      
-    primaryDark: '#D88900',
-    blue: '#2F80ED',        
-    background: '#F5F5F5',
-    inputBg: '#fabb8031',
-    textMain: '#4F4F4F',
-    textSecondary: '#8A8A8A',
-    border: '#f1710731',
-  };
+  primary: '#F4A300',      
+  primaryDark: '#D88900',
+  blue: '#2F80ED',        
+  background: '#F5F5F5',
+  inputBg: '#fabb8031',
+  textMain: '#4F4F4F',
+  textSecondary: '#8A8A8A',
+  border: '#f1710731',
+  white: '#FFFFFF',        
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -108,7 +104,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.inputBg,
     borderRadius: 8,
     padding: 12,
-    color: '#080808',
+    color: COLORS.textMain,  
     marginBottom: 12,
   },
   button: {
@@ -119,7 +115,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   buttonText: {
-    color: '#0f022c',
+    color: COLORS.white,    
     fontWeight: '600',
   },
   link: {

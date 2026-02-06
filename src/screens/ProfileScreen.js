@@ -61,10 +61,22 @@ export default function ProfileScreen() {
   );
 }
 
+const COLORS = {
+  primary: '#F4A300',      
+  primaryDark: '#D88900',
+  blue: '#022e86',        
+  background: '#F5F5F5',
+  inputBg: '#fabb8031',
+  textMain: '#4F4F4F',
+  textSecondary: '#8A8A8A',
+  border: '#f1710731',
+  white: '#FFFFFF',
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#020617',
+    backgroundColor: COLORS.background,  
     padding: 16,
     alignItems: 'center',
   },
@@ -72,24 +84,24 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#1f2937',
+    backgroundColor: COLORS.primaryDark,  
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 24,
   },
   avatarText: {
     fontSize: 32,
-    color: '#e5e7eb',
+    color: COLORS.white,                
     fontWeight: '700',
   },
   name: {
-    color: '#e5e7eb',
+    color: COLORS.textMain,              
     fontSize: 20,
     fontWeight: '600',
     marginTop: 12,
   },
   meta: {
-    color: '#9ca3af',
+    color: COLORS.textSecondary,         
     marginTop: 4,
   },
   section: {
@@ -97,7 +109,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   sectionTitle: {
-    color: '#e5e7eb',
+    color: COLORS.textMain,              
     fontWeight: '600',
     marginBottom: 8,
   },
@@ -107,36 +119,36 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   rowLabel: {
-    color: '#9ca3af',
+    color: COLORS.textSecondary,         
   },
   rowValue: {
-    color: '#e5e7eb',
+    color: COLORS.textMain,              
   },
-    editButton: {
+  editButton: {
     marginTop: 16,
     borderWidth: 1,
-    borderColor: '#22c55e',
+    borderColor: COLORS.blue,             
     paddingVertical: 10,
     paddingHorizontal: 24,
     borderRadius: 999,
   },
   editButtonText: {
-    color: '#22c55e',
+    color: COLORS.blue,                  
     fontWeight: '600',
   },
   button: {
-    backgroundColor: '#ef4444',
+    backgroundColor: COLORS.primary,    
     borderRadius: 999,
     paddingVertical: 10,
     paddingHorizontal: 32,
     marginTop: 32,
   },
   buttonText: {
-    color: '#fef2f2',
+    color: COLORS.white,                  
     fontWeight: '600',
   },
   link: {
-  color: '#22c55e',
-  marginTop: 8,
-},
+    color: COLORS.blue,                  
+    marginTop: 8,
+  },
 });

@@ -11,7 +11,7 @@ export default function CreateRequestScreen({ route, navigation }) {
 
   const [description, setDescription] = useState('');
   const [address, setAddress] = useState('Casa - Calle 123, Roma Norte');
-  const [whenType, setWhenType] = useState('asap'); // 'asap' | 'programado'
+  const [whenType, setWhenType] = useState('asap'); 
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
 
@@ -128,29 +128,42 @@ export default function CreateRequestScreen({ route, navigation }) {
   );
 }
 
+const COLORS = {
+  primary: '#F4A300',      
+  primaryDark: '#D88900',
+  blue: '#2F80ED',        
+  background: '#F5F5F5',
+  inputBg: '#fabb8031',
+  textMain: '#4F4F4F',
+  textSecondary: '#8A8A8A',
+  border: '#f1710731',
+  white: '#FFFFFF',
+  error: '#FF6B6B',
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#020617',
+    backgroundColor: COLORS.background,
     padding: 16,
   },
   heading: {
-    color: '#e5e7eb',
+    color: COLORS.textMain,       
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 12,
   },
   label: {
-    color: '#e5e7eb',
+    color: COLORS.textSecondary, 
     marginTop: 8,
     marginBottom: 4,
   },
   input: {
-    backgroundColor: '#020617',
+    backgroundColor: COLORS.inputBg,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1f2937',
-    color: '#f9fafb',
+    borderColor: COLORS.border,   
+    color: COLORS.textMain,       
     paddingHorizontal: 10,
     paddingVertical: 8,
   },
@@ -166,37 +179,37 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#374151',
+    borderColor: COLORS.border,   
     marginRight: 8,
   },
   chipSelected: {
-    backgroundColor: '#22c55e',
-    borderColor: '#22c55e',
+    backgroundColor: COLORS.blue,
+    borderColor: COLORS.blue,    
   },
   chipText: {
-    color: '#e5e7eb',
+    color: COLORS.textSecondary, 
   },
   chipTextSelected: {
-    color: '#022c22',
+    color: COLORS.white,          
     fontWeight: '600',
   },
   buttonPrimary: {
-    backgroundColor: '#22c55e',
+    backgroundColor: COLORS.primary, 
     borderRadius: 999,
     paddingVertical: 12,
     alignItems: 'center',
     marginTop: 16,
   },
   buttonPrimaryText: {
-    color: '#022c22',
+    color: COLORS.white,          
     fontWeight: '600',
   },
   hint: {
     marginTop: 8,
     fontSize: 12,
-    color: '#6b7280',
+    color: COLORS.textSecondary,  
   },
   error: {
-    color: '#fecaca',
+    color: COLORS.error,          
   },
 });

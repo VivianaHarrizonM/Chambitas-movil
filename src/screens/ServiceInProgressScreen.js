@@ -75,34 +75,46 @@ export default function ServiceInProgressScreen({ route, navigation }) {
     </View>
   );
 }
+const COLORS = {
+  primary: '#F4A300',      
+  primaryDark: '#D88900',
+  blue: '#2F80ED',        
+  background: '#F5F5F5',
+  inputBg: '#fabb8031',
+  textMain: '#4F4F4F',
+  textSecondary: '#8A8A8A',
+  border: '#f1710731',
+  error: '#FF6B6B',        
+  white: '#FFFFFF',        
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#020617',
+    backgroundColor: COLORS.background,
     padding: 16,
   },
   heading: {
-    color: '#e5e7eb',
+    color: COLORS.textMain,   // antes: '#01060f'
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 12,
   },
   card: {
-    backgroundColor: '#020617',
+    backgroundColor: COLORS.background,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#1f2937',
+    borderColor: COLORS.border,
     padding: 14,
     marginBottom: 16,
   },
   proName: {
-    color: '#e5e7eb',
+    color: COLORS.textMain,
     fontSize: 16,
     fontWeight: '600',
   },
   meta: {
-    color: '#9ca3af',
+    color: COLORS.textSecondary,
     fontSize: 12,
     marginTop: 2,
   },
@@ -110,48 +122,48 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    color: '#e5e7eb',
+    color: COLORS.textMain,  
     fontWeight: '600',
     marginBottom: 4,
   },
   statusText: {
-    color: '#22c55e',
+    color: COLORS.primary,
     fontWeight: '600',
     marginBottom: 4,
   },
   description: {
-    color: '#d1d5db',
+    color: COLORS.textSecondary, 
     fontSize: 14,
   },
   primaryButton: {
-    backgroundColor: '#22c55e',
+    backgroundColor: COLORS.primary,
     borderRadius: 999,
     paddingVertical: 12,
     alignItems: 'center',
   },
   primaryButtonText: {
-    color: '#022c22',
+    color: COLORS.white,   
     fontWeight: '600',
   },
   secondaryButton: {
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#4b5563',
+    borderColor: COLORS.textMain, 
     paddingVertical: 8,
     paddingHorizontal: 16,
     marginTop: 6,
     alignSelf: 'flex-start',
   },
   secondaryButtonText: {
-    color: '#e5e7eb',
+    color: COLORS.textSecondary, 
   },
   finishedText: {
-    color: '#22c55e',
+    color: COLORS.primary,
     fontWeight: '600',
     textAlign: 'center',
   },
   error: {
-    color: '#fecaca',
+    color: COLORS.error,   
     padding: 16,
   },
 });

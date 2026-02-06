@@ -15,7 +15,9 @@ export default function LoginScreen({ navigation }) {
   }
 
   await login({ email, password });
+  setPassword('');
 };
+
 
   return (
     <View style={styles.container}>
@@ -59,16 +61,17 @@ export default function LoginScreen({ navigation }) {
   );
 }
 const COLORS = {
-    primary: '#F4A300',      
-    primaryDark: '#D88900',
-    blue: '#2F80ED',        
-    background: '#F5F5F5',
-    inputBg: '#fabb8031',
-    textMain: '#4F4F4F',
-    textSecondary: '#8A8A8A',
-    border: '#f1710731',
-  };
-  
+  primary: '#F4A300',      
+  primaryDark: '#D88900',
+  blue: '#2F80ED',        
+  background: '#F5F5F5',
+  inputBg: '#fabb8031',
+  textMain: '#4F4F4F',
+  textSecondary: '#8A8A8A',
+  border: '#f1710731',
+  white: '#FFFFFF',        
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -114,15 +117,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: COLORS.white,   
     fontWeight: '600',
     fontSize: 16,
   },
   link: {
-  color: COLORS.blue,
-  textAlign: 'center',
-  marginTop: 16,
-},
+    color: COLORS.blue,
+    textAlign: 'center',
+    marginTop: 16,
+  },
   footerText: {
     marginTop: 16,
     fontSize: 12,

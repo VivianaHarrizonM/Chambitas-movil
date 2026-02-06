@@ -44,43 +44,54 @@ export default function MyServicesScreen({ navigation }) {
   );
 }
 
+const COLORS = {
+    primary: '#F4A300',      
+    primaryDark: '#D88900',
+    blue: '#2F80ED',        
+    background: '#F5F5F5',
+    inputBg: '#fabb8031',
+    textMain: '#4F4F4F',
+    textSecondary: '#8A8A8A',
+    border: '#f1710731',
+  };
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#020617',
+    backgroundColor: COLORS.background,
     padding: 16,
   },
   heading: {
-    color: '#e5e7eb',
+    color: COLORS.textMain,   
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 12,
   },
   card: {
-    backgroundColor: '#020617',
+    backgroundColor: COLORS.background,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1f2937',
+    borderColor: COLORS.border,
     padding: 12,
     marginBottom: 10,
   },
   title: {
-    color: '#e5e7eb',
+    color: COLORS.primary,
     fontWeight: '600',
     marginBottom: 4,
   },
   meta: {
-    color: '#9ca3af',
+    color: COLORS.textMain,   
     fontSize: 12,
   },
   metaSmall: {
-    color: '#6b7280',
+    color: COLORS.textSecondary, 
     fontSize: 12,
     marginTop: 2,
   },
   empty: {
-    color: '#9ca3af',
+    color: COLORS.textSecondary, 
     textAlign: 'center',
     marginTop: 24,
   },
 });
+

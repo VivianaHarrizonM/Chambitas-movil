@@ -48,51 +48,63 @@ export default function ProfessionalsListScreen({ route, navigation }) {
   );
 }
 
+const COLORS = {
+  primary: '#F4A300',      
+  primaryDark: '#D88900',
+  blue: '#022e86',        
+  background: '#F5F5F5',
+  inputBg: '#fabb8031',
+  textMain: '#4F4F4F',
+  textSecondary: '#8A8A8A',
+  border: '#f1710731',
+  white: '#FFFFFF',
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#020617',
+    backgroundColor: COLORS.background,
     padding: 16,
   },
   heading: {
-    color: '#e5e7eb',
+    color: COLORS.blue,
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 12,
   },
   card: {
-    backgroundColor: '#020617',
+    backgroundColor: COLORS.inputBg,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#1f2937',
+    borderColor: COLORS.border,
     padding: 14,
     marginBottom: 10,
     flexDirection: 'row',
     alignItems: 'center',
   },
   name: {
-    color: '#e5e7eb',
+    color: COLORS.blue,
     fontWeight: '600',
     marginBottom: 4,
   },
   meta: {
-    color: '#9ca3af',
+    color: COLORS.textSecondary,   
     fontSize: 12,
   },
   button: {
-    backgroundColor: '#22c55e',
+    backgroundColor: COLORS.primary,
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 999,
     marginLeft: 8,
   },
   buttonText: {
-    color: '#022c22',
+    color: COLORS.white,       
     fontWeight: '600',
     fontSize: 12,
   },
   empty: {
-    color: '#9ca3af',
+    color: COLORS.textSecondary, 
     textAlign: 'center',
     marginTop: 24,
   },

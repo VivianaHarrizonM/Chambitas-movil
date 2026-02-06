@@ -53,43 +53,54 @@ export default function EditProfileScreen() {
     </View>
   );
 }
+const COLORS = {
+  primary: '#F4A300',      
+  primaryDark: '#D88900',
+  blue: '#2F80ED',        
+  background: '#F5F5F5',
+  inputBg: '#fabb8031',
+  textMain: '#4F4F4F',
+  textSecondary: '#8A8A8A',
+  border: '#f1710731',
+  white: '#FFFFFF',        
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#020617',
+    backgroundColor: COLORS.background,
     padding: 16,
   },
   title: {
-    color: '#e5e7eb',
+    color: COLORS.textMain,
     fontSize: 22,
     fontWeight: '600',
     marginBottom: 24,
     textAlign: 'center',
   },
   label: {
-    color: '#9ca3af',
+    color: COLORS.textSecondary,   
     marginBottom: 4,
     marginTop: 12,
   },
   input: {
-    backgroundColor: '#111827',
+    backgroundColor: COLORS.inputBg,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    color: '#f9fafb',
+    color: COLORS.textMain,
     borderWidth: 1,
-    borderColor: '#374151',
+    borderColor: COLORS.border,
   },
   button: {
-    backgroundColor: '#22c55e',
+    backgroundColor: COLORS.primary,
     borderRadius: 999,
     paddingVertical: 12,
     marginTop: 32,
     alignItems: 'center',
   },
   buttonText: {
-    color: '#022c22',
+    color: COLORS.white,         
     fontWeight: '600',
     fontSize: 16,
   },

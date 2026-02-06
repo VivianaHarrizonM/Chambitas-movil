@@ -36,26 +36,38 @@ export default function PrivacyPolicyScreen() {
   );
 }
 
+const COLORS = {
+  primary: '#F4A300',      
+  primaryDark: '#D88900',
+  blue: '#2F80ED',        
+  background: '#F5F5F5',
+  inputBg: '#fabb8031',
+  textMain: '#4F4F4F',
+  textSecondary: '#8A8A8A',
+  border: '#f1710731',
+  white: '#FFFFFF',
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#020617',
+    backgroundColor: COLORS.background,  
     padding: 16,
   },
   title: {
-    color: '#e5e7eb',
+    color: COLORS.textMain,               
     fontSize: 20,
     fontWeight: '600',
     marginBottom: 12,
   },
   subtitle: {
-    color: '#e5e7eb',
+    color: COLORS.textMain,             
     fontWeight: '600',
     marginTop: 16,
     marginBottom: 4,
   },
   text: {
-    color: '#9ca3af',
+    color: COLORS.textSecondary,       
     fontSize: 14,
     lineHeight: 20,
   },

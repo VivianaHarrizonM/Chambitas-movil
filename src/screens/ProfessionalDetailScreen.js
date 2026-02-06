@@ -51,11 +51,24 @@ export default function ProfessionalDetailScreen({ route, navigation }) {
     </View>
   );
 }
+const COLORS = {
+  primary: '#F4A300',      
+  primaryDark: '#D88900',
+  blue: '#2F80ED',        
+  background: '#F5F5F5',
+  inputBg: '#fabb8031',
+  textMain: '#4F4F4F',
+  textSecondary: '#8A8A8A',
+  border: '#f1710731',
+  white: '#FFFFFF',
+  error: '#FF6B6B',
+  darkBg: '#1f2937',      
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#020617',
+    backgroundColor: COLORS.background,   
     alignItems: 'center',
     padding: 20,
   },
@@ -63,49 +76,49 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#1f2937',
+    backgroundColor: COLORS.primaryDark,  
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 16,
   },
   avatarText: {
     fontSize: 32,
-    color: '#e5e7eb',
+    color: COLORS.white,                 
     fontWeight: '700',
   },
   name: {
-    color: '#e5e7eb',
+    color: COLORS.textMain,              
     fontSize: 20,
     fontWeight: '600',
     marginTop: 12,
   },
   meta: {
-    color: '#9ca3af',
+    color: COLORS.textSecondary,          
     fontSize: 13,
     marginTop: 2,
   },
   sectionTitle: {
     alignSelf: 'flex-start',
-    color: '#e5e7eb',
+    color: COLORS.textMain,             
     fontWeight: '600',
     marginTop: 24,
     marginBottom: 4,
   },
   description: {
     alignSelf: 'flex-start',
-    color: '#d1d5db',
+    color: COLORS.textSecondary,          
     fontSize: 14,
     marginBottom: 24,
   },
   buttonPrimary: {
-    backgroundColor: '#22c55e',
+    backgroundColor: COLORS.primary,     
     borderRadius: 999,
     paddingVertical: 12,
     paddingHorizontal: 32,
     marginBottom: 8,
   },
   buttonPrimaryText: {
-    color: '#022c22',
+    color: COLORS.white,                  
     fontWeight: '600',
   },
   buttonSecondary: {
@@ -113,18 +126,18 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 28,
     borderWidth: 1,
-    borderColor: '#4b5563',
+    borderColor: COLORS.blue,            
   },
   buttonSecondaryText: {
-    color: '#9ca3af',
+    color: COLORS.blue,                
   },
   hint: {
     marginTop: 12,
     fontSize: 12,
-    color: '#6b7280',
+    color: COLORS.textSecondary,          
     textAlign: 'center',
   },
   error: {
-    color: '#fecaca',
+    color: COLORS.error,                 
   },
 });

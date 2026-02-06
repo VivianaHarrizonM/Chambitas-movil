@@ -34,7 +34,7 @@ export default function HomeScreen({ navigation }) {
       <View style={styles.searchContainer}>
         <TextInput
           placeholder="Buscar plomero, carpintero..."
-          placeholderTextColor="#6b7280"
+          placeholderTextColor="#4F4F4F"
           value={search}
           onChangeText={setSearch}
           onSubmitEditing={handleSearch}
@@ -67,58 +67,69 @@ export default function HomeScreen({ navigation }) {
   );
 }
 
+const COLORS = {
+  primary: '#F4A300',      
+  primaryDark: '#D88900',
+  blue: '#2F80ED',        
+  background: '#F5F5F5',
+  inputBg: '#fabb8031',
+  textMain: '#4F4F4F',
+  textSecondary: '#8A8A8A',
+  border: '#f1710731',
+  white: '#FFFFFF',
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#020617',
+    backgroundColor: COLORS.background,
     paddingHorizontal: 20,
     paddingTop: 16,
   },
   greeting: {
     fontSize: 22,
     fontWeight: '600',
-    color: '#e5e7eb',
+    color: COLORS.textMain,  
   },
   subtitle: {
     fontSize: 14,
-    color: '#9ca3af',
+    color: COLORS.textSecondary, 
     marginTop: 4,
     marginBottom: 16,
   },
   searchContainer: {
     flexDirection: 'row',
-    backgroundColor: '#020617',
     marginBottom: 16,
   },
   searchInput: {
     flex: 1,
-    backgroundColor: '#020617',
+    backgroundColor: COLORS.inputBg,   
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#1f2937',
+    borderColor: COLORS.border,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    color: '#f9fafb',
+    color: COLORS.textMain,          
     marginRight: 8,
   },
   searchButton: {
-    backgroundColor: '#22c55e',
+    backgroundColor: COLORS.primary,
     borderRadius: 999,
     paddingHorizontal: 16,
     justifyContent: 'center',
   },
   searchButtonText: {
-    color: '#022c22',
+    color: COLORS.white,              
     fontWeight: '600',
   },
   sectionTitle: {
-    color: '#e5e7eb',
+    color: COLORS.primaryDark,
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 8,
   },
   categoryCard: {
-    backgroundColor: '#020617',
+    backgroundColor: COLORS.inputBg,
     borderRadius: 16,
     paddingVertical: 18,
     paddingHorizontal: 12,
@@ -126,7 +137,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 8,
     borderWidth: 1,
-    borderColor: '#1f2937',
+    borderColor: COLORS.border,
     alignItems: 'center',
   },
   categoryEmoji: {
@@ -134,7 +145,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   categoryName: {
-    color: '#e5e7eb',
+    color: COLORS.textMain,           
     fontWeight: '500',
   },
 });
