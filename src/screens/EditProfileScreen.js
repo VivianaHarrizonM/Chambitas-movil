@@ -10,12 +10,23 @@ export default function EditProfileScreen() {
   const [name, setName] = useState(user.name || '');
   const [phone, setPhone] = useState(user.phone || '');
   const [address, setAddress] = useState(user.address || '');
+  const [city, setCity] = useState(user.city || '');
+  const [zipCode, setZipCode] = useState(user.zipCode || '');
+  const [reference, setReference] = useState(user.reference || '');
 
   const handleSave = () => {
+    if (!name.trim() || !phone.trim() || !address.trim()) {
+      alert('Nombre, teléfono y dirección son obligatorios');
+      return;
+    }
+
     updateUser({
       name,
       phone,
       address,
+      city,
+      zipCode,
+      reference,
     });
 
     navigation.goBack();
@@ -45,6 +56,29 @@ export default function EditProfileScreen() {
         style={styles.input}
         value={address}
         onChangeText={setAddress}
+      />
+
+      <Text style={styles.label}>Ciudad</Text>
+      <TextInput
+        style={styles.input}
+        value={city}
+        onChangeText={setCity}
+      />
+
+      <Text style={styles.label}>Código postal</Text>
+      <TextInput
+        style={styles.input}
+        value={zipCode}
+        onChangeText={setZipCode}
+        keyboardType="numeric"
+      />
+
+      <Text style={styles.label}>Referencias</Text>
+      <TextInput
+        style={styles.input}
+        value={reference}
+        onChangeText={setReference}
+        placeholder="Ej: Casa blanca con portón negro"
       />
 
       <TouchableOpacity style={styles.button} onPress={handleSave}>

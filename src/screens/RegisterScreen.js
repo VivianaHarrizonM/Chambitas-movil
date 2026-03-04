@@ -3,7 +3,6 @@ import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-nativ
 import { useAppContext } from '../context/AppContext';
 
 export default function RegisterScreen({ navigation }) {
-  const { login, updateUser } = useAppContext();
   const { register } = useAppContext();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');

@@ -31,6 +31,26 @@ export default function ProfileScreen() {
             {user?.address || 'No registrada'}
           </Text>
         </View>
+        <View style={styles.row}>
+          <Text style={styles.rowLabel}>Ciudad</Text>
+          <Text style={styles.rowValue}>
+            {user.city || 'No registrada'}
+          </Text>
+        </View>
+
+        <View style={styles.row}>
+          <Text style={styles.rowLabel}>Código postal</Text>
+          <Text style={styles.rowValue}>
+            {user.zipCode || 'No registrado'}
+          </Text>
+        </View>
+
+        <View style={styles.row}>
+          <Text style={styles.rowLabel}>Referencias</Text>
+          <Text style={styles.rowValue}>
+            {user.reference || 'No registradas'}
+          </Text>
+        </View>
       </View>
 
       <TouchableOpacity

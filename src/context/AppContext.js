@@ -47,11 +47,14 @@ export function AppProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-  });
+  name: '',
+  email: '',
+  phone: '',
+  address: '',
+  city: '',
+  zipCode: '',
+  reference: '',
+});
 
 
   
@@ -87,12 +90,15 @@ export function AppProvider({ children }) {
 
 const register = async ({ name, email, password }) => {
   const userData = {
-    name,
-    email,
-    password,
-    phone: '',
-    address: '',
-  };
+  name,
+  email,
+  password,
+  phone: '',
+  address: '',
+  city: '',
+  zipCode: '',
+  reference: '',
+};
 
   await AsyncStorage.setItem(
     STORAGE_KEYS.USER,
