@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -6,6 +5,7 @@ const STORAGE_KEYS = {
   AUTH: 'AUTH_STATE',
   USER: 'USER_DATA',
   SERVICES: 'SERVICES_DATA',
+  JOBS: 'JOBS_DATA', 
 };
 
 const AppContext = createContext();
@@ -47,83 +47,111 @@ export function AppProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState({
-  name: '',
-  email: '',
-  phone: '',
-  address: '',
-  city: '',
-  zipCode: '',
-  reference: '',
-});
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    city: '',
+    zipCode: '',
+    reference: '',
+  }); 
 
-
-  
   const [professionals] = useState(INITIAL_PROFESSIONALS);
-  const [services, setServices] = useState([]); // solicitudes de servicio
+  const [services, setServices] = useState([]); 
+  const [jobs, setJobs] = useState([]);
+
+  // ✅ CORREGIDO: ahora usa el estado jobs y guarda en AsyncStorage
+  const createJob = async (jobData) => {
+    try {
+      const storedJobs = await AsyncStorage.getItem(STORAGE_KEYS.JOBS);
+      const jobsList = storedJobs ? JSON.parse(storedJobs) : [];
+
+      const newJob = {
+        id: Date.now().toString(), 
+        ...jobData,
+        createdAt: new Date().toISOString(),
+      };
+
+      jobsList.push(newJob);
+      setJobs(jobsList); 
+      await AsyncStorage.setItem(STORAGE_KEYS.JOBS, JSON.stringify(jobsList));
+    } catch (error) {
+      console.log('Error creando chambita', error);
+    }
+  };
 
   const login = async ({ email, password }) => {
-  const storedUser = await AsyncStorage.getItem(STORAGE_KEYS.USER);
+    try {
+      const storedUser = await AsyncStorage.getItem(STORAGE_KEYS.USER);
 
-  if (!storedUser) {
-    alert('No existe ninguna cuenta');
-    return;
-  }
+      if (!storedUser) {
+        alert('No existe ninguna cuenta');
+        return;
+      }
 
-  const userData = JSON.parse(storedUser);
+      const userData = JSON.parse(storedUser);
 
-  console.log('USUARIO GUARDADO:', userData);
-  console.log('LOGIN INTENTO:', email, password);
+      if (userData.email !== email || userData.password !== password) {
+        alert('Correo o contraseña incorrectos');
+        return;
+      }
 
-  if (
-    userData.email !== email ||
-    userData.password !== password
-  ) {
-    alert('Correo o contraseña incorrectos');
-    return;
-  }
+      await AsyncStorage.setItem(STORAGE_KEYS.AUTH, 'true');
+      setUser(userData);
+      setIsAuthenticated(true);
+    } catch (error) {
+      console.log('Error en login:', error);
+      alert('Error al iniciar sesión');
+    }
+  };
 
-  await AsyncStorage.setItem(STORAGE_KEYS.AUTH, 'true');
+  const register = async ({ name, email, password }) => {
+    try {
+      const userData = {
+        name,
+        email,
+        password,
+        phone: '',
+        address: '',
+        city: '',
+        zipCode: '',
+        reference: '',
+      };
 
-  setUser(userData);
-  setIsAuthenticated(true);
-};
-
-const register = async ({ name, email, password }) => {
-  const userData = {
-  name,
-  email,
-  password,
-  phone: '',
-  address: '',
-  city: '',
-  zipCode: '',
-  reference: '',
-};
-
-  await AsyncStorage.setItem(
-    STORAGE_KEYS.USER,
-    JSON.stringify(userData)
-  );
-
-  alert('Cuenta creada. Ahora inicia sesión');
-};
+      await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
+      alert('Cuenta creada. Ahora inicia sesión');
+    } catch (error) {
+      console.log('Error en registro:', error);
+      alert('Error al crear la cuenta');
+    }
+  };
 
   const logout = async () => {
-    await AsyncStorage.multiRemove([
-      STORAGE_KEYS.AUTH,
-      STORAGE_KEYS.SERVICES,
-    ]);
+    try {
+      await AsyncStorage.multiRemove([
+        STORAGE_KEYS.AUTH,
+        STORAGE_KEYS.SERVICES,
+        STORAGE_KEYS.JOBS, 
+      ]);
 
-    setUser({
-      name: '',
-      email: '',
-      phone: '',
-      address: '',
-    });
+      setUser({
+        name: '',
+        email: '',
+        phone: '',
+        address: '',
+        city: '',
+        zipCode: '',
+        reference: '',
+      }); 
 
-    setServices([]);
-    setIsAuthenticated(false);
+      setServices([]);
+      setJobs([]); 
+      setIsAuthenticated(false);
+    } catch (error) {
+      console.log('Error en logout:', error);
+    }
   };
+
   const createServiceRequest = ({
     professionalId,
     description,
@@ -141,7 +169,7 @@ const register = async ({ name, email, password }) => {
       whenType,
       date,
       time,
-      status: 'en_camino', 
+      status: 'en_camino',
       createdAt: new Date().toISOString(),
     };
     setServices((prev) => [newService, ...prev]);
@@ -149,30 +177,33 @@ const register = async ({ name, email, password }) => {
   };
 
   const updateUser = async (updatedData) => {
-    const updatedUser = {
-      ...user,
-      ...updatedData,
-    };
+    try {
+      const updatedUser = {
+        ...user,
+        ...updatedData,
+      };
 
-    setUser(updatedUser);
-    await AsyncStorage.setItem(
-      STORAGE_KEYS.USER,
-      JSON.stringify(updatedUser)
-    );
+      setUser(updatedUser);
+      await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(updatedUser));
+    } catch (error) {
+      console.log('Error actualizando usuario:', error);
+    }
   };
-  
+
   const updateServiceStatus = (serviceId, status) => {
     setServices((prev) =>
       prev.map((s) => (s.id === serviceId ? { ...s, status } : s))
     );
   };
 
+  // ✅ CORREGIDO: agregar jobs a la carga inicial
   useEffect(() => {
     const loadData = async () => {
       try {
         const auth = await AsyncStorage.getItem(STORAGE_KEYS.AUTH);
         const userData = await AsyncStorage.getItem(STORAGE_KEYS.USER);
         const servicesData = await AsyncStorage.getItem(STORAGE_KEYS.SERVICES);
+        const jobsData = await AsyncStorage.getItem(STORAGE_KEYS.JOBS); 
 
         if (auth === 'true' && userData) {
           setIsAuthenticated(true);
@@ -180,6 +211,7 @@ const register = async ({ name, email, password }) => {
         }
 
         if (servicesData) setServices(JSON.parse(servicesData));
+        if (jobsData) setJobs(JSON.parse(jobsData)); 
       } catch (e) {
         console.log('Error loading data', e);
       } finally {
@@ -190,20 +222,27 @@ const register = async ({ name, email, password }) => {
     loadData();
   }, []);
 
-useEffect(() => {
-  AsyncStorage.setItem(STORAGE_KEYS.AUTH, isAuthenticated ? 'true' : 'false');
-}, [isAuthenticated]);
+  useEffect(() => {
+    AsyncStorage.setItem(STORAGE_KEYS.AUTH, isAuthenticated ? 'true' : 'false');
+  }, [isAuthenticated]);
 
-useEffect(() => {
-  if (user?.email) {
-    AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
-  }
-}, [user]);
+  useEffect(() => {
+    if (user?.email) {
+      AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+    }
+  }, [user]);
 
-useEffect(() => {
-  AsyncStorage.setItem(STORAGE_KEYS.SERVICES, JSON.stringify(services));
-}, [services]);
-const isProfileComplete = user.phone && user.address;
+  useEffect(() => {
+    AsyncStorage.setItem(STORAGE_KEYS.SERVICES, JSON.stringify(services));
+  }, [services]);
+
+  
+  useEffect(() => {
+    AsyncStorage.setItem(STORAGE_KEYS.JOBS, JSON.stringify(jobs));
+  }, [jobs]);
+
+  const isProfileComplete = user.phone && user.address;
+
   const value = useMemo(
     () => ({
       isAuthenticated,
@@ -211,6 +250,7 @@ const isProfileComplete = user.phone && user.address;
       user,
       professionals,
       services,
+      jobs, 
       login,
       register,
       logout,
@@ -218,8 +258,9 @@ const isProfileComplete = user.phone && user.address;
       updateServiceStatus,
       updateUser,
       isProfileComplete,
-  }),
-  [isAuthenticated, user, professionals, services]
+      createJob,
+    }),
+    [isAuthenticated, user, professionals, services, jobs] 
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, ScrollView } from 'react-native';
 import { useAppContext } from '../context/AppContext';
 
 const CATEGORIES = [
@@ -19,7 +19,6 @@ export default function HomeScreen({ navigation }) {
 
   const handleSearch = () => {
     if (!search.trim()) return;
-    // Para la demo, mandamos siempre a Plomería
     navigation.navigate('ProfessionalsList', {
       categoryId: 'plomeria',
       categoryName: `Resultados para "${search}"`,
@@ -52,7 +51,8 @@ export default function HomeScreen({ navigation }) {
         keyExtractor={(item) => item.id}
         numColumns={2}
         columnWrapperStyle={{ justifyContent: 'space-between' }}
-        contentContainerStyle={{ paddingTop: 8 }}
+        contentContainerStyle={{ paddingTop: 8, paddingBottom: 20 }}
+        scrollEnabled={false} 
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.categoryCard}
@@ -62,15 +62,23 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.categoryName}>{item.name}</Text>
           </TouchableOpacity>
         )}
+        ListFooterComponent={
+          <TouchableOpacity
+            style={styles.publishButton}
+            onPress={() => navigation.navigate('CreateJob')}
+          >
+            <Text style={styles.publishButtonText}>+ Publicar chambita</Text>
+          </TouchableOpacity>
+        }
       />
     </View>
   );
 }
 
 const COLORS = {
-  primary: '#F4A300',      
+  primary: '#F4A300',
   primaryDark: '#D88900',
-  blue: '#2F80ED',        
+  blue: '#2F80ED',
   background: '#F5F5F5',
   inputBg: '#fabb8031',
   textMain: '#4F4F4F',
@@ -89,11 +97,11 @@ const styles = StyleSheet.create({
   greeting: {
     fontSize: 22,
     fontWeight: '600',
-    color: COLORS.textMain,  
+    color: COLORS.textMain,
   },
   subtitle: {
     fontSize: 14,
-    color: COLORS.textSecondary, 
+    color: COLORS.textSecondary,
     marginTop: 4,
     marginBottom: 16,
   },
@@ -103,13 +111,13 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    backgroundColor: COLORS.inputBg,   
+    backgroundColor: COLORS.inputBg,
     borderRadius: 999,
     borderWidth: 1,
     borderColor: COLORS.border,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    color: COLORS.textMain,          
+    color: COLORS.textMain,
     marginRight: 8,
   },
   searchButton: {
@@ -119,7 +127,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   searchButtonText: {
-    color: COLORS.white,              
+    color: COLORS.white,
     fontWeight: '600',
   },
   sectionTitle: {
@@ -145,7 +153,29 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   categoryName: {
-    color: COLORS.textMain,           
+    color: COLORS.textMain,
     fontWeight: '500',
+  },
+  
+  publishButton: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  publishButtonText: {
+    color: COLORS.white,
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
 });

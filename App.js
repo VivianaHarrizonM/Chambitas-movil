@@ -3,161 +3,90 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
-import { AppProvider, useAppContext } from './src/context/AppContext';
+import { AuthProvider, useAuth } from './src/Context/AuthContext';
+import { JobsProvider } from './src/Context/JobsContext';
+import { ServicesProvider } from './src/context/ServicesContext';
 
-import LoginScreen from './src/screens/LoginScreen';
-import HomeScreen from './src/screens/HomeScreen';
-import ProfessionalsListScreen from './src/screens/ProfessionalsListScreen';
-import ProfessionalDetailScreen from './src/screens/ProfessionalDetailScreen';
-import CreateRequestScreen from './src/screens/CreateRequestScreen';
-import ServiceInProgressScreen from './src/screens/ServiceInProgressScreen';
-import MyServicesScreen from './src/screens/MyServicesScreen';
-import ProfileScreen from './src/screens/ProfileScreen';
-import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
-import TermsScreen from './src/screens/TermsScreen';
-import EditProfileScreen from './src/screens/EditProfileScreen';
-import RegisterScreen from './src/screens/RegisterScreen';
-
-
+import LoginScreen from './src/screens/auth/LoginScreen';
+import RegisterScreen from './src/screens/auth/RegisterScreen';
+import HomeScreen from './src/screens/customer/HomeScreen';
+import ProfessionalListScreen from './src/screens/customer/ProfessionalListScreen';
+import ProfessionalDetailScreen from './src/screens/customer/ProfessionalDetailScreen';
+import CreateRequestScreen from './src/screens/customer/CreateRequestScreen';
+import ServiceInProgressScreen from './src/screens/customer/ServiceInProgressScreen';
+import MyServicesScreen from './src/screens/professional/MyServicesScreen';
+import CreateJobsScreen from './src/screens/professional/CreateJobsScreen';
+import ProfileScreen from './src/screens/profile/ProfileScreen';
+import EditProfileScreen from './src/screens/profile/EditProfileScreen';
+import PrivacyPolicyScreen from './src/screens/legal/PrivacyPolicyScreen';
+import TermsScreen from './src/screens/legal/TermsScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-function HomeStack() {
+function AuthNavigator() {
   return (
-    <Stack.Navigator>
-      <Stack.Screen
-        name="HomeMain"
-        component={HomeScreen}
-        options={{ title: 'Chambitas' }}
-      />
-      <Stack.Screen
-        name="ProfessionalsList"
-        component={ProfessionalsListScreen}
-        options={({ route }) => ({
-          title: route.params?.categoryName || 'Profesionales',
-        })}
-      />
-      <Stack.Screen
-        name="ProfessionalDetail"
-        component={ProfessionalDetailScreen}
-        options={{ title: 'Detalle' }}
-      />
-      <Stack.Screen
-        name="CreateRequest"
-        component={CreateRequestScreen}
-        options={{ title: 'Solicitar servicio' }}
-      />
-      <Stack.Screen
-        name="ServiceInProgress"
-        component={ServiceInProgressScreen}
-        options={{ title: 'Servicio en curso' }}
-      />
-      <Stack.Screen
-        name="EditProfile"
-        component={EditProfileScreen}
-        options={{ title: 'Editar perfil' }}
-      />
-      <Stack.Screen
-        name="PrivacyPolicy"
-        component={PrivacyPolicyScreen}
-        options={{ title: 'Privacidad' }}
-      />
-
-      <Stack.Screen
-        name="Terms"
-        component={TermsScreen}
-        options={{ title: 'Términos' }}
-      />
-    </Stack.Navigator>
-    
-  );
-}
-
-function MyServicesStack() {
-  return (
-    <Stack.Navigator>
-      <Stack.Screen
-        name="MyServicesMain"
-        component={MyServicesScreen}
-        options={{ title: 'Mis servicios' }}
-      />
-      <Stack.Screen
-        name="ServiceInProgressFromList"
-        component={ServiceInProgressScreen}
-        options={{ title: 'Detalle de servicio' }}
-      />
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Register" component={RegisterScreen} />
     </Stack.Navigator>
   );
 }
 
-function AppTabs() {
+function CustomerStack() {
   return (
-    <Tab.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Tab.Screen
-        name="HomeTab"
-        component={HomeStack}
-        options={{
-          tabBarLabel: 'Inicio',
-        }}
-      />
-      <Tab.Screen
-        name="MyServicesTab"
-        component={MyServicesStack}
-        options={{
-          tabBarLabel: 'Mis servicios',
-        }}
-      />
-      <Tab.Screen
-        name="ProfileTab"
-        component={ProfileScreen}
-        options={{
-          tabBarLabel: 'Perfil',
-        }}
-      />
+    <Stack.Navigator>
+      <Stack.Screen name="HomeCust" component={HomeScreen} options={{ title: 'Chambitas' }} />
+      <Stack.Screen name="ProfsList" component={ProfessionalListScreen} />
+      <Stack.Screen name="ProfsDetail" component={ProfessionalDetailScreen} />
+      <Stack.Screen name="CreateReq" component={CreateRequestScreen} />
+      <Stack.Screen name="ServiceProg" component={ServiceInProgressScreen} />
+    </Stack.Navigator>
+  );
+}
+
+function CustomerNavigator() {
+  return (
+    <Tab.Navigator>
+      <Tab.Screen name="HomeTab" component={CustomerStack} options={{ headerShown: false, tabBarIcon: ({ color }) => <Ionicons name="home" size={24} color={color} /> }} />
+      <Tab.Screen name="MyServicesTab" component={ServiceInProgressScreen} options={{ headerShown: false, tabBarIcon: ({ color }) => <Ionicons name="list" size={24} color={color} /> }} />
+      <Tab.Screen name="ProfileTab" component={ProfileScreen} options={{ headerShown: false, tabBarIcon: ({ color }) => <Ionicons name="person" size={24} color={color} /> }} />
     </Tab.Navigator>
   );
 }
 
-function AuthStack() {
+function ProfessionalNavigator() {
   return (
-    <Stack.Navigator>
-      <Stack.Screen
-        name="Login"
-        component={LoginScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="Register"
-        component={RegisterScreen}
-        options={{ title: 'Registro' }}
-      />
-    </Stack.Navigator>
+    <Tab.Navigator>
+      <Tab.Screen name="MyJobsTab" component={MyServicesScreen} options={{ headerShown: false, tabBarIcon: ({ color }) => <Ionicons name="briefcase" size={24} color={color} /> }} />
+      <Tab.Screen name="CreateJobTab" component={CreateJobsScreen} options={{ headerShown: false, tabBarIcon: ({ color }) => <Ionicons name="add-circle" size={24} color={color} /> }} />
+      <Tab.Screen name="ProfileTab" component={ProfileScreen} options={{ headerShown: false, tabBarIcon: ({ color }) => <Ionicons name="person" size={24} color={color} /> }} />
+    </Tab.Navigator>
   );
 }
 
 function RootNavigator() {
-  const { isAuthenticated, isLoading } = useAppContext();
+  const { isAuthenticated, isLoading, userType } = useAuth();
 
   if (isLoading) return null;
 
   return (
     <NavigationContainer>
-      {isAuthenticated ? <AppTabs /> : <AuthStack />}
+      {isAuthenticated ? (userType === 'professional' ? <ProfessionalNavigator /> : <CustomerNavigator />) : <AuthNavigator />}
     </NavigationContainer>
   );
 }
 
 export default function App() {
   return (
-    <AppProvider>
-      <RootNavigator />
-    </AppProvider>
+    <AuthProvider>
+      <JobsProvider>
+        <ServicesProvider>
+          <RootNavigator />
+        </ServicesProvider>
+      </JobsProvider>
+    </AuthProvider>
   );
 }
