@@ -1,15 +1,15 @@
 import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const STORAGE_KEYS = {
+/*const STORAGE_KEYS = {
   AUTH: 'AUTH_STATE',
   USER: 'USER_DATA',
   SERVICES: 'SERVICES_DATA',
   JOBS: 'JOBS_DATA', 
-};
+};*/
 
 const AppContext = createContext();
-
+/*
 const INITIAL_PROFESSIONALS = [
   {
     id: '1',
@@ -264,6 +264,6 @@ export function AppProvider({ children }) {
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
-}
+}*/
 
 export const useAppContext = () => useContext(AppContext);

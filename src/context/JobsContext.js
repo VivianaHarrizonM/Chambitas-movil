@@ -1,46 +1,54 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const STORAGE_KEY = 'GLOBAL_JOBS_DATA';
 
 const JobsContext = createContext();
 
 export function JobsProvider({ children }) {
-  const [myJobs, setMyJobs] = useState([]);
+  const [jobs, setJobs] = useState([]);
+  const loaded = useRef(false); 
 
   useEffect(() => {
-    const loadJobs = async () => {
-      try {
-        const jobs = await AsyncStorage.getItem('myJobs');
-        if (jobs) setMyJobs(JSON.parse(jobs));
-      } catch (error) {
-        console.error('Error:', error);
-      }
-    };
-    loadJobs();
+    AsyncStorage.getItem(STORAGE_KEY)
+      .then((data) => {
+        if (data) setJobs(JSON.parse(data));
+      })
+      .catch((e) => console.log('Error cargando chambitas:', e))
+      .finally(() => { loaded.current = true; });
   }, []);
 
+  
   useEffect(() => {
-    AsyncStorage.setItem('myJobs', JSON.stringify(myJobs));
-  }, [myJobs]);
+    if (!loaded.current) return;
+    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(jobs))
+      .catch((e) => console.log('Error guardando chambitas:', e));
+  }, [jobs]);
 
   const createJob = async (jobData) => {
-    const newJob = { id: Date.now().toString(), ...jobData, status: 'active', createdAt: new Date().toISOString() };
-    setMyJobs((prev) => [newJob, ...prev]);
-    return { success: true, job: newJob };
+    try {
+      const newJob = {
+        id: Date.now().toString(),
+        ...jobData,
+        createdAt: new Date().toISOString(),
+      };
+      setJobs((prev) => [newJob, ...prev]);
+      return newJob;
+    } catch (error) {
+      console.log('Error creando chambita:', error);
+      return null;
+    }
   };
 
-  const updateJob = (jobId, updates) => {
-    setMyJobs((prev) => prev.map((job) => (job.id === jobId ? { ...job, ...updates } : job)));
+  const deleteJob = (jobId) => {
+    setJobs((prev) => prev.filter((j) => j.id !== jobId));
   };
 
   return (
-    <JobsContext.Provider value={{ myJobs, createJob, updateJob }}>
+    <JobsContext.Provider value={{ jobs, createJob, deleteJob }}>
       {children}
     </JobsContext.Provider>
   );
 }
 
-export const useJobs = () => {
-  const context = useContext(JobsContext);
-  if (!context) throw new Error('useJobs debe estar dentro de JobsProvider');
-  return context;
-};
+export const useJobs = () => useContext(JobsContext);

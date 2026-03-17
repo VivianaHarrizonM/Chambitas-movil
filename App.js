@@ -5,14 +5,14 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 
-import { AuthProvider, useAuth } from './src/Context/AuthContext';
-import { JobsProvider } from './src/Context/JobsContext';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
+import { JobsProvider } from './src/context/JobsContext';
 import { ServicesProvider } from './src/context/ServicesContext';
 
 import LoginScreen from './src/screens/auth/LoginScreen';
 import RegisterScreen from './src/screens/auth/RegisterScreen';
 import HomeScreen from './src/screens/customer/HomeScreen';
-import ProfessionalListScreen from './src/screens/customer/ProfessionalListScreen';
+import ProfessionalListScreen from './src/screens/customer/ProfessionalsListScreen';
 import ProfessionalDetailScreen from './src/screens/customer/ProfessionalDetailScreen';
 import CreateRequestScreen from './src/screens/customer/CreateRequestScreen';
 import ServiceInProgressScreen from './src/screens/customer/ServiceInProgressScreen';
@@ -35,14 +35,27 @@ function AuthNavigator() {
   );
 }
 
+// Stack del cliente con todas las rutas anidadas
 function CustomerStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen name="HomeCust" component={HomeScreen} options={{ title: 'Chambitas' }} />
-      <Stack.Screen name="ProfsList" component={ProfessionalListScreen} />
-      <Stack.Screen name="ProfsDetail" component={ProfessionalDetailScreen} />
-      <Stack.Screen name="CreateReq" component={CreateRequestScreen} />
-      <Stack.Screen name="ServiceProg" component={ServiceInProgressScreen} />
+      <Stack.Screen name="ProfsList" component={ProfessionalListScreen} options={{ title: 'Profesionales' }} />
+      <Stack.Screen name="ProfsDetail" component={ProfessionalDetailScreen} options={{ title: 'Perfil' }} />
+      <Stack.Screen name="CreateReq" component={CreateRequestScreen} options={{ title: 'Solicitar servicio' }} />
+      <Stack.Screen name="ServiceProg" component={ServiceInProgressScreen} options={{ title: 'Servicio en curso' }} />
+    </Stack.Navigator>
+  );
+}
+
+// Stack de perfil compartido (cliente y profesional)
+function ProfileStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name="ProfileMain" component={ProfileScreen} options={{ title: 'Mi perfil' }} />
+      <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: 'Editar perfil' }} />
+      <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} options={{ title: 'Privacidad' }} />
+      <Stack.Screen name="Terms" component={TermsScreen} options={{ title: 'Términos' }} />
     </Stack.Navigator>
   );
 }
@@ -50,19 +63,75 @@ function CustomerStack() {
 function CustomerNavigator() {
   return (
     <Tab.Navigator>
-      <Tab.Screen name="HomeTab" component={CustomerStack} options={{ headerShown: false, tabBarIcon: ({ color }) => <Ionicons name="home" size={24} color={color} /> }} />
-      <Tab.Screen name="MyServicesTab" component={ServiceInProgressScreen} options={{ headerShown: false, tabBarIcon: ({ color }) => <Ionicons name="list" size={24} color={color} /> }} />
-      <Tab.Screen name="ProfileTab" component={ProfileScreen} options={{ headerShown: false, tabBarIcon: ({ color }) => <Ionicons name="person" size={24} color={color} /> }} />
+      <Tab.Screen
+        name="HomeTab"
+        component={CustomerStack}
+        options={{
+          headerShown: false,
+          tabBarLabel: 'Inicio',
+          tabBarIcon: ({ color }) => <Ionicons name="home" size={24} color={color} />,
+        }}
+      />
+      <Tab.Screen
+        name="MyServicesTab"
+        component={ServiceInProgressScreen}
+        options={{
+          headerShown: false,
+          tabBarLabel: 'Servicio',
+          tabBarIcon: ({ color }) => <Ionicons name="list" size={24} color={color} />,
+        }}
+      />
+      <Tab.Screen
+        name="ProfileTab"
+        component={ProfileStack}
+        options={{
+          headerShown: false,
+          tabBarLabel: 'Perfil',
+          tabBarIcon: ({ color }) => <Ionicons name="person" size={24} color={color} />,
+        }}
+      />
     </Tab.Navigator>
+  );
+}
+
+// Stack del profesional
+function ProfessionalStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name="MyJobsMain" component={MyServicesScreen} options={{ title: 'Mis chambitas' }} />
+    </Stack.Navigator>
   );
 }
 
 function ProfessionalNavigator() {
   return (
     <Tab.Navigator>
-      <Tab.Screen name="MyJobsTab" component={MyServicesScreen} options={{ headerShown: false, tabBarIcon: ({ color }) => <Ionicons name="briefcase" size={24} color={color} /> }} />
-      <Tab.Screen name="CreateJobTab" component={CreateJobsScreen} options={{ headerShown: false, tabBarIcon: ({ color }) => <Ionicons name="add-circle" size={24} color={color} /> }} />
-      <Tab.Screen name="ProfileTab" component={ProfileScreen} options={{ headerShown: false, tabBarIcon: ({ color }) => <Ionicons name="person" size={24} color={color} /> }} />
+      <Tab.Screen
+        name="MyJobsTab"
+        component={ProfessionalStack}
+        options={{
+          headerShown: false,
+          tabBarLabel: 'Mis chambitas',
+          tabBarIcon: ({ color }) => <Ionicons name="briefcase" size={24} color={color} />,
+        }}
+      />
+      <Tab.Screen
+        name="CreateJobTab"
+        component={CreateJobsScreen}
+        options={{
+          tabBarLabel: 'Publicar',
+          tabBarIcon: ({ color }) => <Ionicons name="add-circle" size={24} color={color} />,
+        }}
+      />
+      <Tab.Screen
+        name="ProfileTab"
+        component={ProfileStack}
+        options={{
+          headerShown: false,
+          tabBarLabel: 'Perfil',
+          tabBarIcon: ({ color }) => <Ionicons name="person" size={24} color={color} />,
+        }}
+      />
     </Tab.Navigator>
   );
 }
@@ -74,7 +143,9 @@ function RootNavigator() {
 
   return (
     <NavigationContainer>
-      {isAuthenticated ? (userType === 'professional' ? <ProfessionalNavigator /> : <CustomerNavigator />) : <AuthNavigator />}
+      {isAuthenticated
+        ? (userType === 'professional' ? <ProfessionalNavigator /> : <CustomerNavigator />)
+        : <AuthNavigator />}
     </NavigationContainer>
   );
 }
