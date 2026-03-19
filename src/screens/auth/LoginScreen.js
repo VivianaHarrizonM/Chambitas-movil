@@ -37,7 +37,7 @@ export default function LoginScreen({ navigation }) {
       <TextInput
         value={password}
         onChangeText={setPassword}
-        placeholder="••••••••"
+        placeholder="******"
         style={common.input}
         secureTextEntry
       />

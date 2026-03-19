@@ -1,15 +1,21 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { useJobs } from '../../context/JobsContext';
+import { useAuth } from '../../context/AuthContext';
 import { COLORS, common } from '../../theme';
 
 export default function MyServicesScreen() {
   const { jobs, deleteJob } = useJobs();
+  const { user } = useAuth();
+
+  // Solo muestra los jobs publicados por el usuario activo
+  const myJobs = jobs.filter((j) => j.authorEmail === user.email);
+
   return (
     <View style={common.screen}>
       <Text style={common.heading}>Mis chambitas publicadas</Text>
       <FlatList
-        data={jobs}
+        data={myJobs}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={<Text style={common.emptyText}>Aún no has publicado chambitas. Ve a la pestaña Publicar para agregar una.</Text>}
         renderItem={({ item }) => (
@@ -31,26 +37,9 @@ export default function MyServicesScreen() {
 }
 
 const styles = StyleSheet.create({
-  cardRow: { 
-    flexDirection: 'row', 
-    alignItems: 'flex-start' },
-  title: { 
-    color: COLORS.primary, 
-    fontWeight: '600', 
-    marginBottom: 2 },
-  price: { 
-    color: COLORS.primaryDark, 
-    fontWeight: '600', 
-    marginTop: 4, 
-    fontSize: 13 },
-  deleteButton: { 
-    paddingVertical: 4, 
-    paddingHorizontal: 10, 
-    borderRadius: 999, 
-    borderWidth: 1, 
-    borderColor: COLORS.error, 
-    marginLeft: 8 },
-  deleteText: { 
-    color: COLORS.error, 
-    fontSize: 12 },
+  cardRow: { flexDirection: 'row', alignItems: 'flex-start' },
+  title: { color: COLORS.primary, fontWeight: '600', marginBottom: 2 },
+  price: { color: COLORS.primaryDark, fontWeight: '600', marginTop: 4, fontSize: 13 },
+  deleteButton: { paddingVertical: 4, paddingHorizontal: 10, borderRadius: 999, borderWidth: 1, borderColor: COLORS.error, marginLeft: 8 },
+  deleteText: { color: COLORS.error, fontSize: 12 },
 });

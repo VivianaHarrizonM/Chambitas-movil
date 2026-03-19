@@ -4,15 +4,7 @@ import { useJobs } from '../../context/JobsContext';
 import { useAuth } from '../../context/AuthContext';
 import { COLORS, common } from '../../theme';
 
-const CATEGORIES = [
-  'Plomería', 
-  'Electricidad', 
-  'Carpintería', 
-  'Herrería', 
-  'Pintura', 
-  'Limpieza', 
-  'Jardinería', 
-  'Otro'];
+const CATEGORIES = ['Plomería', 'Electricidad', 'Carpintería', 'Herrería', 'Pintura', 'Limpieza', 'Jardinería', 'Otro'];
 
 export default function CreateJobsScreen({ navigation }) {
   const { createJob } = useJobs();
@@ -34,7 +26,8 @@ export default function CreateJobsScreen({ navigation }) {
       description,
       price,
       area,
-      authorName: user.name, 
+      authorName: user.name,
+      authorEmail: user.email, // identifica al dueño del job
     });
     if (job) {
       alert('¡Chambita publicada con éxito!');
@@ -76,8 +69,5 @@ export default function CreateJobsScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  chipsWrap: { 
-    flexDirection: 'row', 
-    flexWrap: 'wrap', 
-    marginBottom: 4 },
+  chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 4 },
 });

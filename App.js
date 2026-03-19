@@ -16,6 +16,7 @@ import ProfessionalListScreen from './src/screens/customer/ProfessionalsListScre
 import ProfessionalDetailScreen from './src/screens/customer/ProfessionalDetailScreen';
 import CreateRequestScreen from './src/screens/customer/CreateRequestScreen';
 import ServiceInProgressScreen from './src/screens/customer/ServiceInProgressScreen';
+import MyRequestsScreen from './src/screens/customer/MyRequestsScreen';
 import MyServicesScreen from './src/screens/professional/MyServicesScreen';
 import CreateJobsScreen from './src/screens/professional/CreateJobsScreen';
 import ProfileScreen from './src/screens/profile/ProfileScreen';
@@ -60,6 +61,15 @@ function ProfileStack() {
   );
 }
 
+function MyRequestsStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name="MyRequests" component={MyRequestsScreen} options={{ title: 'Mis servicios' }} />
+      <Stack.Screen name="ServiceDetail" component={ServiceInProgressScreen} options={{ title: 'Detalle del servicio' }} />
+    </Stack.Navigator>
+  );
+}
+
 function CustomerNavigator() {
   return (
     <Tab.Navigator>
@@ -74,10 +84,10 @@ function CustomerNavigator() {
       />
       <Tab.Screen
         name="MyServicesTab"
-        component={ServiceInProgressScreen}
+        component={MyRequestsStack}
         options={{
           headerShown: false,
-          tabBarLabel: 'Servicio',
+          tabBarLabel: 'Servicios',
           tabBarIcon: ({ color }) => <Ionicons name="list" size={24} color={color} />,
         }}
       />

@@ -17,7 +17,6 @@ export function ServicesProvider({ children }) {
   const loaded = useRef(false);
   const { jobs } = useJobs();
 
-  // Convierte los jobs publicados en tarjetas visibles para el consumidor
   const jobsAsProfessionals = jobs.map((job) => ({
     id: 'job-' + job.id,
     name: job.authorName || 'Profesional',
@@ -30,7 +29,6 @@ export function ServicesProvider({ children }) {
     jobTitle: job.title || '',
   }));
 
-  // Lista que ve el consumidor: seed fijos + jobs publicados por profesionales
   const professionals = [...SEED_PROFESSIONALS, ...jobsAsProfessionals];
 
   useEffect(() => {
@@ -46,10 +44,22 @@ export function ServicesProvider({ children }) {
       .catch((e) => console.log('Error guardando servicios:', e));
   }, [services]);
 
-  const createServiceRequest = ({ professionalId, description, address, whenType, date, time }) => {
+  // customerEmail identifica a qué consumidor pertenece cada solicitud
+  const createServiceRequest = ({ professionalId, description, address, whenType, date, time, customerEmail }) => {
     if (!description.trim()) { alert('Por favor describe lo que necesitas'); return null; }
     const id = String(Date.now());
-    const newService = { id, professionalId, description, address, whenType, date, time, status: 'en_camino', createdAt: new Date().toISOString() };
+    const newService = {
+      id,
+      professionalId,
+      description,
+      address,
+      whenType,
+      date,
+      time,
+      customerEmail,   // <-- guarda el email del consumidor
+      status: 'en_camino',
+      createdAt: new Date().toISOString(),
+    };
     setServices((prev) => [newService, ...prev]);
     return newService;
   };

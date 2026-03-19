@@ -4,10 +4,10 @@ import { useAuth } from "../../context/AuthContext";
 import { COLORS, common } from "../../theme";
 
 const CATEGORIES = [
-  { id: "plomeria", name: "Plomeria", emoji: "🛠" },
+  { id: "plomeria",     name: "Plomería",     emoji: "🛠" },
   { id: "electricidad", name: "Electricidad", emoji: "💡" },
-  { id: "carpinteria", name: "Carpinteria", emoji: "🪚" },
-  { id: "herreria", name: "Herreria", emoji: "⚒" },
+  { id: "carpinteria",  name: "Carpintería",  emoji: "🪚" },
+  { id: "herreria",     name: "Herrería",     emoji: "⚒" },
 ];
 
 export default function HomeScreen({ navigation }) {
@@ -15,17 +15,23 @@ export default function HomeScreen({ navigation }) {
   const [search, setSearch] = useState("");
 
   const handleCategoryPress = (categoryId, name) =>
-    navigation.navigate("ProfsList", { categoryId, categoryName: name });
+    navigation.navigate("ProfsList", { categoryId, categoryName: name, searchText: "" });
 
   const handleSearch = () => {
-    if (!search.trim()) return;
-    navigation.navigate("ProfsList", { categoryId: "todos", categoryName: "Resultados para " + search });
+    const q = search.trim();
+    if (!q) return;
+    // Pasa el texto como parámetro separado para que ProfessionalsListScreen filtre correctamente
+    navigation.navigate("ProfsList", {
+      categoryId: "busqueda",
+      categoryName: 'Resultados para "' + q + '"',
+      searchText: q,
+    });
   };
 
   return (
     <View style={common.screen}>
       <Text style={styles.greeting}>Hola, {user.name} 👋</Text>
-      <Text style={styles.subtitle}>¿Que servicio necesitas hoy?</Text>
+      <Text style={styles.subtitle}>¿Qué servicio necesitas hoy?</Text>
       <View style={styles.searchRow}>
         <TextInput
           placeholder="Buscar plomero, carpintero..."
@@ -39,7 +45,7 @@ export default function HomeScreen({ navigation }) {
           <Text style={styles.searchButtonText}>Buscar</Text>
         </TouchableOpacity>
       </View>
-      <Text style={styles.sectionTitle}>Categorias populares</Text>
+      <Text style={styles.sectionTitle}>Categorías populares</Text>
       <FlatList
         data={CATEGORIES}
         keyExtractor={(item) => item.id}
@@ -59,56 +65,14 @@ export default function HomeScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  greeting: { 
-    fontSize: 22, 
-    fontWeight: "600", 
-    color: COLORS.textMain },
-  subtitle: { 
-    fontSize: 14, 
-    color: COLORS.textSecondary, 
-    marginTop: 4, 
-    marginBottom: 16 },
-  searchRow: { 
-    flexDirection: "row", 
-    marginBottom: 16 },
-  searchInput: { 
-    flex: 1, 
-    backgroundColor: COLORS.inputBg,
-    borderRadius: 999, 
-    borderWidth: 1, 
-    borderColor: COLORS.border, 
-    paddingHorizontal: 14, 
-    paddingVertical: 10, 
-    color: COLORS.textMain, 
-    marginRight: 8 },
-  searchButton: { 
-    backgroundColor: COLORS.primary, 
-    borderRadius: 999, 
-    paddingHorizontal: 16, 
-    justifyContent: "center" },
-  searchButtonText: { 
-    color: COLORS.white, 
-    fontWeight: "600" },
-  sectionTitle: { 
-    color: COLORS.primaryDark, 
-    fontSize: 16, 
-    fontWeight: "600", 
-    marginBottom: 8 },
-  categoryCard: { 
-    backgroundColor: COLORS.inputBg, 
-    borderRadius: 16, 
-    borderWidth: 1, 
-    borderColor: COLORS.border, 
-    paddingVertical: 18, 
-    paddingHorizontal: 12, 
-    marginBottom: 12, 
-    flex: 1, 
-    marginRight: 8, 
-    alignItems: "center" },
-  categoryEmoji: { 
-    fontSize: 24, 
-    marginBottom: 6 },
-  categoryName: { 
-    color: COLORS.textMain, 
-    fontWeight: "500" },
+  greeting: { fontSize: 22, fontWeight: "600", color: COLORS.textMain },
+  subtitle: { fontSize: 14, color: COLORS.textSecondary, marginTop: 4, marginBottom: 16 },
+  searchRow: { flexDirection: "row", marginBottom: 16 },
+  searchInput: { flex: 1, backgroundColor: COLORS.inputBg, borderRadius: 999, borderWidth: 1, borderColor: COLORS.border, paddingHorizontal: 14, paddingVertical: 10, color: COLORS.textMain, marginRight: 8 },
+  searchButton: { backgroundColor: COLORS.primary, borderRadius: 999, paddingHorizontal: 16, justifyContent: "center" },
+  searchButtonText: { color: COLORS.white, fontWeight: "600" },
+  sectionTitle: { color: COLORS.primaryDark, fontSize: 16, fontWeight: "600", marginBottom: 8 },
+  categoryCard: { backgroundColor: COLORS.inputBg, borderRadius: 16, borderWidth: 1, borderColor: COLORS.border, paddingVertical: 18, paddingHorizontal: 12, marginBottom: 12, flex: 1, marginRight: 8, alignItems: "center" },
+  categoryEmoji: { fontSize: 24, marginBottom: 6 },
+  categoryName: { color: COLORS.textMain, fontWeight: "500" },
 });

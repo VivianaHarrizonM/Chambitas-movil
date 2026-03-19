@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { useServices } from '../../context/ServicesContext';
+import { useAuth } from '../../context/AuthContext';
 import { COLORS, common } from '../../theme';
 
 export default function CreateRequestScreen({ route, navigation }) {
   const { professionalId } = route.params;
   const { professionals, createServiceRequest } = useServices();
+  const { user } = useAuth();
   const professional = professionals.find((p) => p.id === professionalId);
 
   const [description, setDescription] = useState('');
@@ -14,12 +16,22 @@ export default function CreateRequestScreen({ route, navigation }) {
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
 
-  if (!professional) return <View style={common.screen}><Text style={common.errorText}>Profesional no encontrado</Text></View>;
+  if (!professional) return (
+    <View style={common.screen}><Text style={common.errorText}>Profesional no encontrado</Text></View>
+  );
 
   const handleConfirm = () => {
     if (!description.trim()) { alert('Por favor describe lo que necesitas'); return; }
     if (!address.trim()) { alert('Ingresa tu dirección'); return; }
-    const newService = createServiceRequest({ professionalId: professional.id, description, address, whenType, date, time });
+    const newService = createServiceRequest({
+      professionalId: professional.id,
+      description,
+      address,
+      whenType,
+      date,
+      time,
+      customerEmail: user.email,  // <-- identifica al consumidor
+    });
     if (newService) navigation.replace('ServiceProg', { serviceId: newService.id });
   };
 
@@ -61,7 +73,5 @@ export default function CreateRequestScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  chipsRow: { 
-    flexDirection: 'row',
-    marginTop: 6 },
+  chipsRow: { flexDirection: 'row', marginTop: 6 },
 });
