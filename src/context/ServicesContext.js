@@ -44,20 +44,14 @@ export function ServicesProvider({ children }) {
       .catch((e) => console.log('Error guardando servicios:', e));
   }, [services]);
 
-  // customerEmail identifica a qué consumidor pertenece cada solicitud
   const createServiceRequest = ({ professionalId, description, address, whenType, date, time, customerEmail }) => {
     if (!description.trim()) { alert('Por favor describe lo que necesitas'); return null; }
     const id = String(Date.now());
     const newService = {
-      id,
-      professionalId,
-      description,
-      address,
-      whenType,
-      date,
-      time,
-      customerEmail,   // <-- guarda el email del consumidor
+      id, professionalId, description, address, whenType,
+      date, time, customerEmail,
       status: 'en_camino',
+      rating: null,       // calificación pendiente
       createdAt: new Date().toISOString(),
     };
     setServices((prev) => [newService, ...prev]);
@@ -68,8 +62,13 @@ export function ServicesProvider({ children }) {
     setServices((prev) => prev.map((s) => (s.id === serviceId ? { ...s, status } : s)));
   };
 
+  // Guarda la calificación del consumidor al finalizar
+  const rateService = (serviceId, rating) => {
+    setServices((prev) => prev.map((s) => (s.id === serviceId ? { ...s, rating } : s)));
+  };
+
   return (
-    <ServicesContext.Provider value={{ services, professionals, createServiceRequest, updateServiceStatus }}>
+    <ServicesContext.Provider value={{ services, professionals, createServiceRequest, updateServiceStatus, rateService }}>
       {children}
     </ServicesContext.Provider>
   );

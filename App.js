@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { JobsProvider } from './src/context/JobsContext';
-import { ServicesProvider } from './src/context/ServicesContext';
+import { ServicesProvider, useServices } from './src/context/ServicesContext';
 
 import LoginScreen from './src/screens/auth/LoginScreen';
 import RegisterScreen from './src/screens/auth/RegisterScreen';
@@ -36,7 +36,7 @@ function AuthNavigator() {
   );
 }
 
-// Stack del cliente con todas las rutas anidadas
+
 function CustomerStack() {
   return (
     <Stack.Navigator>
@@ -71,6 +71,14 @@ function MyRequestsStack() {
 }
 
 function CustomerNavigator() {
+  const { services } = useServices();
+  const { user } = useAuth();
+
+  // Cuenta servicios activos del consumidor para el badge
+  const activeCount = services.filter(
+    (s) => s.customerEmail === user.email && s.status !== 'finalizado'
+  ).length;
+
   return (
     <Tab.Navigator>
       <Tab.Screen
@@ -88,6 +96,7 @@ function CustomerNavigator() {
         options={{
           headerShown: false,
           tabBarLabel: 'Servicios',
+          tabBarBadge: activeCount > 0 ? activeCount : undefined,
           tabBarIcon: ({ color }) => <Ionicons name="list" size={24} color={color} />,
         }}
       />

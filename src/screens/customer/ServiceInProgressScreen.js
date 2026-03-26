@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useServices } from '../../context/ServicesContext';
 import { COLORS, common } from '../../theme';
@@ -9,10 +9,25 @@ const STATUS_CONFIG = {
   finalizado:  { label: 'Finalizado',  color: '#22c55e' },
 };
 
+function StarRating({ value, onChange }) {
+  return (
+    <View style={styles.starsRow}>
+      {[1, 2, 3, 4, 5].map((star) => (
+        <TouchableOpacity key={star} onPress={() => onChange(star)}>
+          <Text style={[styles.star, star <= value && styles.starActive]}>★</Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+}
+
 export default function ServiceInProgressScreen({ route, navigation }) {
   const { serviceId } = route?.params || {};
-  const { services, professionals, updateServiceStatus } = useServices();
-  const service = services.find((s) => s.id === serviceId);
+  const { services, professionals, updateServiceStatus, rateService } = useServices();
+  const [selectedRating, setSelectedRating] = useState(0);
+  const [rated, setRated] = useState(false);
+
+  const service      = services.find((s) => s.id === serviceId);
   const professional = service ? professionals.find((p) => p.id === service.professionalId) : null;
 
   if (!service || !professional) return (
@@ -21,26 +36,31 @@ export default function ServiceInProgressScreen({ route, navigation }) {
     </View>
   );
 
-  const isFinished = service.status === 'finalizado';
-  const statusConfig = STATUS_CONFIG[service.status] || { label: service.status, color: COLORS.textSecondary };
+  const isFinished    = service.status === 'finalizado';
+  const alreadyRated  = service.rating !== null && service.rating !== undefined;
+  const statusConfig  = STATUS_CONFIG[service.status] || { label: service.status, color: COLORS.textSecondary };
 
   const advanceStatus = () => {
-    if (service.status === 'en_camino') updateServiceStatus(service.id, 'en_servicio');
+    if (service.status === 'en_camino')   updateServiceStatus(service.id, 'en_servicio');
     else if (service.status === 'en_servicio') updateServiceStatus(service.id, 'finalizado');
+  };
+
+  const handleRate = () => {
+    if (selectedRating === 0) { alert('Selecciona una calificación'); return; }
+    rateService(service.id, selectedRating);
+    setRated(true);
   };
 
   return (
     <View style={common.screen}>
       <Text style={common.heading}>Servicio en curso</Text>
 
-      {/* Tarjeta del profesional */}
       <View style={common.card}>
         <Text style={styles.proName}>{professional.name}</Text>
         <Text style={common.hintText}>{professional.category} • {professional.rating.toFixed(1)} ★</Text>
         <Text style={common.hintText}>{professional.area}</Text>
       </View>
 
-      {/* Estado con badge de color */}
       <Text style={common.label}>Estado</Text>
       <View style={styles.statusRow}>
         <View style={[styles.badge, { backgroundColor: statusConfig.color }]}>
@@ -50,7 +70,7 @@ export default function ServiceInProgressScreen({ route, navigation }) {
 
       <Text style={[common.hintText, { marginTop: 8 }]}>{service.description || 'Sin descripción'}</Text>
 
-      {/* Acciones — solo visibles cuando NO está finalizado */}
+      
       {!isFinished && (
         <>
           <Text style={[common.label, { marginTop: 16 }]}>Acciones</Text>
@@ -63,9 +83,32 @@ export default function ServiceInProgressScreen({ route, navigation }) {
         </>
       )}
 
+      
+      {isFinished && (
+        <View style={styles.ratingContainer}>
+          {alreadyRated || rated ? (
+            <View style={styles.ratedBox}>
+              <Text style={styles.ratedTitle}>¡Gracias por tu calificación!</Text>
+              <View style={styles.starsRow}>
+                {[1,2,3,4,5].map((s) => (
+                  <Text key={s} style={[styles.star, s <= (service.rating || selectedRating) && styles.starActive]}>★</Text>
+                ))}
+              </View>
+            </View>
+          ) : (
+            <>
+              <Text style={styles.ratingTitle}>¿Cómo estuvo el servicio?</Text>
+              <StarRating value={selectedRating} onChange={setSelectedRating} />
+              <TouchableOpacity style={[common.buttonPrimary, { backgroundColor: '#22c55e', marginTop: 8 }]} onPress={handleRate}>
+                <Text style={common.buttonPrimaryText}>Enviar calificación</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+      )}
+
       <View style={{ flex: 1 }} />
 
-      {/* Botón principal */}
       {!isFinished ? (
         <TouchableOpacity style={common.buttonPrimary} onPress={advanceStatus}>
           <Text style={common.buttonPrimaryText}>
@@ -73,22 +116,24 @@ export default function ServiceInProgressScreen({ route, navigation }) {
           </Text>
         </TouchableOpacity>
       ) : (
-        <View style={styles.finishedContainer}>
-          <Text style={styles.finishedMsg}>¡Servicio completado con éxito!</Text>
-          <TouchableOpacity style={common.buttonPrimary} onPress={() => navigation.navigate('HomeTab')}>
-            <Text style={common.buttonPrimaryText}>Volver al inicio</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity style={[common.buttonPrimary, { marginTop: 16 }]} onPress={() => navigation.navigate('HomeTab')}>
+          <Text style={common.buttonPrimaryText}>Volver al inicio</Text>
+        </TouchableOpacity>
       )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  proName: { color: COLORS.textMain, fontSize: 16, fontWeight: '600' },
-  statusRow: { flexDirection: 'row', marginTop: 4 },
-  badge: { borderRadius: 999, paddingHorizontal: 14, paddingVertical: 5 },
-  badgeText: { color: '#fff', fontWeight: '600', fontSize: 13 },
-  finishedContainer: { alignItems: 'center' },
-  finishedMsg: { color: '#22c55e', fontWeight: '600', fontSize: 15, marginBottom: 4 },
+  proName:         { color: COLORS.textMain, fontSize: 16, fontWeight: '600' },
+  statusRow:       { flexDirection: 'row', marginTop: 4 },
+  badge:           { borderRadius: 999, paddingHorizontal: 14, paddingVertical: 5 },
+  badgeText:       { color: '#fff', fontWeight: '600', fontSize: 13 },
+  ratingContainer: { marginTop: 24, alignItems: 'center' },
+  ratingTitle:     { fontSize: 16, fontWeight: '600', color: COLORS.textMain, marginBottom: 12 },
+  starsRow:        { flexDirection: 'row', gap: 8 },
+  star:            { fontSize: 36, color: COLORS.border },
+  starActive:      { color: COLORS.primary },
+  ratedBox:        { alignItems: 'center', gap: 10 },
+  ratedTitle:      { fontSize: 15, fontWeight: '600', color: '#22c55e' },
 });

@@ -92,3 +92,8 @@ const styles = StyleSheet.create({
   inputError: { borderColor: COLORS.error, borderWidth: 1.5 },
   errorMsg: { color: COLORS.error, fontSize: 12, marginTop: 4, marginLeft: 4 },
 });
+
+
+
+
+
