@@ -49,7 +49,6 @@ function CustomerStack() {
   );
 }
 
-// Stack de perfil compartido (cliente y profesional)
 function ProfileStack() {
   return (
     <Stack.Navigator>

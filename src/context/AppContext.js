@@ -1,269 +1,231 @@
 import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-/*const STORAGE_KEYS = {
-  AUTH: 'AUTH_STATE',
-  USER: 'USER_DATA',
-  SERVICES: 'SERVICES_DATA',
-  JOBS: 'JOBS_DATA', 
-};*/
+import { supabase } from '../lib/supabase';
 
 const AppContext = createContext();
-/*
-const INITIAL_PROFESSIONALS = [
-  {
-    id: '1',
-    name: 'Juan Pérez',
-    category: 'Plomería',
-    rating: 4.8,
-    distanceKm: 1.2,
-    priceFrom: 300,
-    area: 'Roma Norte, CDMX',
-    description: 'Plomero certificado con más de 10 años de experiencia en plomería residencial.',
-  },
-  {
-    id: '2',
-    name: 'María López',
-    category: 'Plomería',
-    rating: 4.6,
-    distanceKm: 2.0,
-    priceFrom: 400,
-    area: 'Condesa, CDMX',
-    description: 'Especialista en fugas e instalación de calentadores.',
-  },
-  {
-    id: '3',
-    name: 'Carlos Ramírez',
-    category: 'Carpintería',
-    rating: 4.7,
-    distanceKm: 1.8,
-    priceFrom: 500,
-    area: 'Del Valle, CDMX',
-    description: 'Carpintería fina, muebles a medida y reparaciones.',
-  },
-];
 
 export function AppProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    zipCode: '',
-    reference: '',
-  }); 
+  const [user, setUser] = useState(null);
+  const [professionals, setProfessionals] = useState([]);
+  const [services, setServices] = useState([]);
 
-  const [professionals] = useState(INITIAL_PROFESSIONALS);
-  const [services, setServices] = useState([]); 
-  const [jobs, setJobs] = useState([]);
+  // ── Escucha cambios de sesión automáticamente ──
+  useEffect(() => {
+    // Verificar sesión activa al arrancar
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setIsAuthenticated(true);
+        loadUserProfile(session.user.id);
+      }
+      setIsLoading(false);
+    });
 
-  // ✅ CORREGIDO: ahora usa el estado jobs y guarda en AsyncStorage
-  const createJob = async (jobData) => {
-    try {
-      const storedJobs = await AsyncStorage.getItem(STORAGE_KEYS.JOBS);
-      const jobsList = storedJobs ? JSON.parse(storedJobs) : [];
+    // Escuchar login/logout en tiempo real
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          setIsAuthenticated(true);
+          await loadUserProfile(session.user.id);
+          await loadServices(session.user.id);
+        } else if (event === 'SIGNED_OUT') {
+          setIsAuthenticated(false);
+          setUser(null);
+          setServices([]);
+        }
+      }
+    );
 
-      const newJob = {
-        id: Date.now().toString(), 
-        ...jobData,
-        createdAt: new Date().toISOString(),
-      };
+    return () => subscription.unsubscribe();
+  }, []);
 
-      jobsList.push(newJob);
-      setJobs(jobsList); 
-      await AsyncStorage.setItem(STORAGE_KEYS.JOBS, JSON.stringify(jobsList));
-    } catch (error) {
-      console.log('Error creando chambita', error);
+  // ── Cargar profesionales al iniciar ──
+  useEffect(() => {
+    loadProfessionals();
+  }, []);
+
+  const loadUserProfile = async (userId) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (data) {
+      setUser({
+        id: data.id,
+        name: data.name,
+        email: (await supabase.auth.getUser()).data.user?.email || '',
+        phone: data.phone || '',
+        address: data.address || '',
+        city: data.city || '',
+        zipCode: data.zip_code || '',
+        reference: data.reference || '',
+      });
     }
   };
 
-  const login = async ({ email, password }) => {
-    try {
-      const storedUser = await AsyncStorage.getItem(STORAGE_KEYS.USER);
+  const loadProfessionals = async () => {
+    const { data, error } = await supabase
+      .from('professionals')
+      .select('*')
+      .eq('is_active', true);
 
-      if (!storedUser) {
-        alert('No existe ninguna cuenta');
-        return;
-      }
-
-      const userData = JSON.parse(storedUser);
-
-      if (userData.email !== email || userData.password !== password) {
-        alert('Correo o contraseña incorrectos');
-        return;
-      }
-
-      await AsyncStorage.setItem(STORAGE_KEYS.AUTH, 'true');
-      setUser(userData);
-      setIsAuthenticated(true);
-    } catch (error) {
-      console.log('Error en login:', error);
-      alert('Error al iniciar sesión');
+    if (data) {
+      setProfessionals(data.map(p => ({
+        id: p.id,
+        name: p.name,
+        category: p.category,
+        rating: p.rating,
+        distanceKm: p.distance_km,
+        priceFrom: p.price_from,
+        area: p.area,
+        description: p.description,
+      })));
     }
+  };
+
+  const loadServices = async (userId) => {
+    const { data, error } = await supabase
+      .from('services')
+      .select('*, professionals(name, category, rating, area)')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (data) {
+      setServices(data.map(s => ({
+        id: s.id,
+        professionalId: s.professional_id,
+        description: s.description,
+        address: s.address,
+        whenType: s.when_type,
+        date: s.scheduled_date,
+        time: s.scheduled_time,
+        status: s.status,
+        createdAt: s.created_at,
+      })));
+    }
+  };
+
+  // ── Auth ──
+  const login = async ({ email, password }) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      alert('Correo o contraseña incorrectos');
+      return false;
+    }
+    return true;
   };
 
   const register = async ({ name, email, password }) => {
-    try {
-      const userData = {
-        name,
-        email,
-        password,
-        phone: '',
-        address: '',
-        city: '',
-        zipCode: '',
-        reference: '',
-      };
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { name } },
+    });
 
-      await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
-      alert('Cuenta creada. Ahora inicia sesión');
-    } catch (error) {
-      console.log('Error en registro:', error);
-      alert('Error al crear la cuenta');
+    if (error) {
+      alert('Error al crear la cuenta: ' + error.message);
+      return false;
     }
+
+    alert('Cuenta creada. Ahora inicia sesión.');
+    return true;
   };
 
   const logout = async () => {
-    try {
-      await AsyncStorage.multiRemove([
-        STORAGE_KEYS.AUTH,
-        STORAGE_KEYS.SERVICES,
-        STORAGE_KEYS.JOBS, 
-      ]);
-
-      setUser({
-        name: '',
-        email: '',
-        phone: '',
-        address: '',
-        city: '',
-        zipCode: '',
-        reference: '',
-      }); 
-
-      setServices([]);
-      setJobs([]); 
-      setIsAuthenticated(false);
-    } catch (error) {
-      console.log('Error en logout:', error);
-    }
+    await supabase.auth.signOut();
   };
 
-  const createServiceRequest = ({
-    professionalId,
-    description,
-    address,
-    whenType,
-    date,
-    time,
-  }) => {
-    const id = String(Date.now());
-    const newService = {
-      id,
-      professionalId,
-      description,
-      address,
-      whenType,
-      date,
-      time,
-      status: 'en_camino',
-      createdAt: new Date().toISOString(),
-    };
-    setServices((prev) => [newService, ...prev]);
-    return newService;
-  };
-
+  // ── Perfil ──
   const updateUser = async (updatedData) => {
-    try {
-      const updatedUser = {
-        ...user,
-        ...updatedData,
-      };
+    if (!user?.id) return;
 
-      setUser(updatedUser);
-      await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(updatedUser));
-    } catch (error) {
-      console.log('Error actualizando usuario:', error);
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        name: updatedData.name,
+        phone: updatedData.phone,
+        address: updatedData.address,
+        city: updatedData.city,
+        zip_code: updatedData.zipCode,
+        reference: updatedData.reference,
+      })
+      .eq('id', user.id);
+
+    if (!error) {
+      setUser(prev => ({ ...prev, ...updatedData }));
     }
   };
 
-  const updateServiceStatus = (serviceId, status) => {
-    setServices((prev) =>
-      prev.map((s) => (s.id === serviceId ? { ...s, status } : s))
+  // ── Servicios ──
+  const createServiceRequest = async ({
+    professionalId, description, address, whenType, date, time,
+  }) => {
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+
+    const { data, error } = await supabase
+      .from('services')
+      .insert({
+        user_id: authUser.id,
+        professional_id: professionalId,
+        description,
+        address,
+        when_type: whenType,
+        scheduled_date: date,
+        scheduled_time: time,
+        status: 'en_camino',
+      })
+      .select()
+      .single();
+
+    if (data) {
+      const newService = {
+        id: data.id,
+        professionalId: data.professional_id,
+        description: data.description,
+        address: data.address,
+        whenType: data.when_type,
+        date: data.scheduled_date,
+        time: data.scheduled_time,
+        status: data.status,
+        createdAt: data.created_at,
+      };
+      setServices(prev => [newService, ...prev]);
+      return newService;
+    }
+    return null;
+  };
+
+  const updateServiceStatus = async (serviceId, status) => {
+    await supabase
+      .from('services')
+      .update({ status })
+      .eq('id', serviceId);
+
+    setServices(prev =>
+      prev.map(s => s.id === serviceId ? { ...s, status } : s)
     );
   };
 
-  // ✅ CORREGIDO: agregar jobs a la carga inicial
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const auth = await AsyncStorage.getItem(STORAGE_KEYS.AUTH);
-        const userData = await AsyncStorage.getItem(STORAGE_KEYS.USER);
-        const servicesData = await AsyncStorage.getItem(STORAGE_KEYS.SERVICES);
-        const jobsData = await AsyncStorage.getItem(STORAGE_KEYS.JOBS); 
+  const isProfileComplete = user?.phone && user?.address;
 
-        if (auth === 'true' && userData) {
-          setIsAuthenticated(true);
-          setUser(JSON.parse(userData));
-        }
-
-        if (servicesData) setServices(JSON.parse(servicesData));
-        if (jobsData) setJobs(JSON.parse(jobsData)); 
-      } catch (e) {
-        console.log('Error loading data', e);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadData();
-  }, []);
-
-  useEffect(() => {
-    AsyncStorage.setItem(STORAGE_KEYS.AUTH, isAuthenticated ? 'true' : 'false');
-  }, [isAuthenticated]);
-
-  useEffect(() => {
-    if (user?.email) {
-      AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
-    }
-  }, [user]);
-
-  useEffect(() => {
-    AsyncStorage.setItem(STORAGE_KEYS.SERVICES, JSON.stringify(services));
-  }, [services]);
-
-  
-  useEffect(() => {
-    AsyncStorage.setItem(STORAGE_KEYS.JOBS, JSON.stringify(jobs));
-  }, [jobs]);
-
-  const isProfileComplete = user.phone && user.address;
-
-  const value = useMemo(
-    () => ({
-      isAuthenticated,
-      isLoading,
-      user,
-      professionals,
-      services,
-      jobs, 
-      login,
-      register,
-      logout,
-      createServiceRequest,
-      updateServiceStatus,
-      updateUser,
-      isProfileComplete,
-      createJob,
-    }),
-    [isAuthenticated, user, professionals, services, jobs] 
-  );
+  const value = useMemo(() => ({
+    isAuthenticated,
+    isLoading,
+    user,
+    professionals,
+    services,
+    login,
+    register,
+    logout,
+    createServiceRequest,
+    updateServiceStatus,
+    updateUser,
+    isProfileComplete,
+  }), [isAuthenticated, isLoading, user, professionals, services]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
-}*/
+}
 
 export const useAppContext = () => useContext(AppContext);
