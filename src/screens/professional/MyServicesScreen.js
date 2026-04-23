@@ -1,19 +1,17 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
-import { useJobs } from '../../context/JobsContext';
-import { useAuth } from '../../context/AuthContext';
+import { useAppContext } from '../../context/AppContext';
 import { COLORS, common } from '../../theme';
 
 export default function MyServicesScreen() {
-  const { jobs, deleteJob } = useJobs();
-  const { user } = useAuth();
+  const { jobs, deleteJob, user } = useAppContext();
 
-  const myJobs = jobs.filter((j) => j.authorEmail === user.email);
+  const myJobs = jobs.filter((j) => j.authorId === user?.id);
 
   const handleDelete = (job) => {
     Alert.alert(
       'Eliminar chambita',
-      '¿Seguro que deseas eliminar "' + job.title + '"? Esta acción no se puede deshacer.',
+      '¿Seguro que deseas eliminar "' + job.title + '"?',
       [
         { text: 'Cancelar', style: 'cancel' },
         { text: 'Eliminar', style: 'destructive', onPress: () => deleteJob(job.id) },
@@ -37,15 +35,10 @@ export default function MyServicesScreen() {
             <View style={{ flex: 1 }}>
               <Text style={styles.title}>{item.title || 'Sin título'}</Text>
               <Text style={common.hintText}>{item.category || 'Sin categoría'}</Text>
-              <Text style={[common.hintText, { marginTop: 2 }]} numberOfLines={2}>
-                {item.description || 'Sin descripción'}
-              </Text>
+              <Text style={[common.hintText, { marginTop: 2 }]} numberOfLines={2}>{item.description || 'Sin descripción'}</Text>
               {item.price ? <Text style={styles.price}>${item.price} MXN</Text> : null}
             </View>
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => handleDelete(item)}
-            >
+            <TouchableOpacity style={styles.deleteButton} onPress={() => handleDelete(item)}>
               <Text style={styles.deleteText}>Eliminar</Text>
             </TouchableOpacity>
           </View>
@@ -59,10 +52,8 @@ const styles = StyleSheet.create({
   cardRow: { flexDirection: 'row', alignItems: 'flex-start' },
   title: { color: COLORS.primary, fontWeight: '600', marginBottom: 2 },
   price: { color: COLORS.primaryDark, fontWeight: '600', marginTop: 4, fontSize: 13 },
-  deleteButton: {
-    paddingVertical: 4, paddingHorizontal: 10,
-    borderRadius: 999, borderWidth: 1,
-    borderColor: COLORS.error, marginLeft: 8,
+  deleteButton: { 
+    paddingVertical: 4, paddingHorizontal: 10, borderRadius: 999, borderWidth: 1, borderColor: COLORS.error, marginLeft: 8 
   },
   deleteText: { color: COLORS.error, fontSize: 12 },
 });

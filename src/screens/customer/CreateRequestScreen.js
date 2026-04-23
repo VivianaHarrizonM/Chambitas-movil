@@ -1,36 +1,34 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
-import { useServices } from '../../context/ServicesContext';
-import { useAuth } from '../../context/AuthContext';
+import { useAppContext } from '../../context/AppContext';
 import { COLORS, common } from '../../theme';
 
 export default function CreateRequestScreen({ route, navigation }) {
   const { professionalId } = route.params;
-  const { professionals, createServiceRequest } = useServices();
-  const { user } = useAuth();
+  const { professionals, createServiceRequest } = useAppContext();
   const professional = professionals.find((p) => p.id === professionalId);
 
   const [description, setDescription] = useState('');
-  const [address, setAddress] = useState('');
-  const [whenType, setWhenType] = useState('asap');
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
+  const [address, setAddress]         = useState('');
+  const [whenType, setWhenType]       = useState('asap');
+  const [date, setDate]               = useState('');
+  const [time, setTime]               = useState('');
 
   if (!professional) return (
-    <View style={common.screen}><Text style={common.errorText}>Profesional no encontrado</Text></View>
+    <View style={common.screen}>
+      <Text style={common.errorText}>Profesional no encontrado</Text>
+    </View>
   );
 
-  const handleConfirm = () => {
-    if (!description.trim()) { alert('Por favor describe lo que necesitas'); return; }
+  const handleConfirm = async () => {
     if (!address.trim()) { alert('Ingresa tu dirección'); return; }
-    const newService = createServiceRequest({
+    const newService = await createServiceRequest({
       professionalId: professional.id,
       description,
       address,
       whenType,
       date,
       time,
-      customerEmail: user.email,  // <-- identifica al consumidor
     });
     if (newService) navigation.replace('ServiceProg', { serviceId: newService.id });
   };
@@ -40,10 +38,23 @@ export default function CreateRequestScreen({ route, navigation }) {
       <Text style={common.heading}>Solicitar servicio con {professional.name}</Text>
 
       <Text style={common.label}>¿Qué necesitas?</Text>
-      <TextInput style={[common.input, common.textArea]} multiline placeholder="Describe el problema..." placeholderTextColor={COLORS.textSecondary} value={description} onChangeText={setDescription} />
+      <TextInput
+        style={[common.input, common.textArea]}
+        multiline
+        placeholder="Describe el problema..."
+        placeholderTextColor={COLORS.textSecondary}
+        value={description}
+        onChangeText={setDescription}
+      />
 
       <Text style={common.label}>Dirección</Text>
-      <TextInput style={common.input} placeholder="Tu dirección completa" placeholderTextColor={COLORS.textSecondary} value={address} onChangeText={setAddress} />
+      <TextInput
+        style={common.input}
+        placeholder="Tu dirección completa"
+        placeholderTextColor={COLORS.textSecondary}
+        value={address}
+        onChangeText={setAddress}
+      />
 
       <Text style={common.label}>¿Cuándo lo necesitas?</Text>
       <View style={styles.chipsRow}>

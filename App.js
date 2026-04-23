@@ -5,20 +5,26 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 
-import { AuthProvider, useAuth } from './src/context/AuthContext';
-import { JobsProvider } from './src/context/JobsContext';
-import { ServicesProvider, useServices } from './src/context/ServicesContext';
+import { AppProvider, useAppContext } from './src/context/AppContext';
 
+
+// — Auth screens
 import LoginScreen from './src/screens/auth/LoginScreen';
 import RegisterScreen from './src/screens/auth/RegisterScreen';
+
+// — Customer screens
 import HomeScreen from './src/screens/customer/HomeScreen';
 import ProfessionalListScreen from './src/screens/customer/ProfessionalsListScreen';
 import ProfessionalDetailScreen from './src/screens/customer/ProfessionalDetailScreen';
 import CreateRequestScreen from './src/screens/customer/CreateRequestScreen';
 import ServiceInProgressScreen from './src/screens/customer/ServiceInProgressScreen';
 import MyRequestsScreen from './src/screens/customer/MyRequestsScreen';
+
+// — Professional screens
 import MyServicesScreen from './src/screens/professional/MyServicesScreen';
 import CreateJobsScreen from './src/screens/professional/CreateJobsScreen';
+
+// — Profile & Legal screens
 import ProfileScreen from './src/screens/profile/ProfileScreen';
 import EditProfileScreen from './src/screens/profile/EditProfileScreen';
 import PrivacyPolicyScreen from './src/screens/legal/PrivacyPolicyScreen';
@@ -36,7 +42,6 @@ function AuthNavigator() {
   );
 }
 
-
 function CustomerStack() {
   return (
     <Stack.Navigator>
@@ -45,6 +50,15 @@ function CustomerStack() {
       <Stack.Screen name="ProfsDetail" component={ProfessionalDetailScreen} options={{ title: 'Perfil' }} />
       <Stack.Screen name="CreateReq" component={CreateRequestScreen} options={{ title: 'Solicitar servicio' }} />
       <Stack.Screen name="ServiceProg" component={ServiceInProgressScreen} options={{ title: 'Servicio en curso' }} />
+    </Stack.Navigator>
+  );
+}
+
+function MyRequestsStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name="MyRequests" component={MyRequestsScreen} options={{ title: 'Mis servicios' }} />
+      <Stack.Screen name="ServiceDetail" component={ServiceInProgressScreen} options={{ title: 'Detalle del servicio' }} />
     </Stack.Navigator>
   );
 }
@@ -60,23 +74,11 @@ function ProfileStack() {
   );
 }
 
-function MyRequestsStack() {
-  return (
-    <Stack.Navigator>
-      <Stack.Screen name="MyRequests" component={MyRequestsScreen} options={{ title: 'Mis servicios' }} />
-      <Stack.Screen name="ServiceDetail" component={ServiceInProgressScreen} options={{ title: 'Detalle del servicio' }} />
-    </Stack.Navigator>
-  );
-}
-
 function CustomerNavigator() {
-  const { services } = useServices();
-  const { user } = useAuth();
+  const { services } = useAppContext();
 
-  // Cuenta servicios activos del consumidor para el badge
-  const activeCount = services.filter(
-    (s) => s.customerEmail === user.email && s.status !== 'finalizado'
-  ).length;
+  const activeCount = services.filter(s => s.status !== 'finalizado').length;
+  
 
   return (
     <Tab.Navigator>
@@ -112,7 +114,6 @@ function CustomerNavigator() {
   );
 }
 
-// Stack del profesional
 function ProfessionalStack() {
   return (
     <Stack.Navigator>
@@ -155,14 +156,16 @@ function ProfessionalNavigator() {
 }
 
 function RootNavigator() {
-  const { isAuthenticated, isLoading, userType } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAppContext();
 
   if (isLoading) return null;
 
   return (
     <NavigationContainer>
       {isAuthenticated
-        ? (userType === 'professional' ? <ProfessionalNavigator /> : <CustomerNavigator />)
+        ? (user?.userType === 'professional'
+            ? <ProfessionalNavigator />
+            : <CustomerNavigator />)
         : <AuthNavigator />}
     </NavigationContainer>
   );
@@ -170,12 +173,8 @@ function RootNavigator() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <JobsProvider>
-        <ServicesProvider>
-          <RootNavigator />
-        </ServicesProvider>
-      </JobsProvider>
-    </AuthProvider>
+    <AppProvider>
+      <RootNavigator />
+    </AppProvider>
   );
 }

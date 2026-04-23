@@ -1,27 +1,28 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useAuth } from '../../context/AuthContext';
+import { useAppContext } from '../../context/AppContext';
 import { COLORS, common } from '../../theme';
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
-  const { user, logout } = useAuth();
+  const { user, logout } = useAppContext();
+
   const fields = [
-    { label: 'Teléfono', value: user.phone || 'No registrado' },
-    { label: 'Dirección', value: user.address || 'No registrada' },
-    { label: 'Ciudad', value: user.city || 'No registrada' },
-    { label: 'Código postal', value: user.zipCode || 'No registrado' },
-    { label: 'Referencias', value: user.reference || 'No registradas' },
+    { label: 'Teléfono',       value: user?.phone     || 'No registrado' },
+    { label: 'Dirección',      value: user?.address   || 'No registrada' },
+    { label: 'Ciudad',         value: user?.city      || 'No registrada' },
+    { label: 'Código postal',  value: user?.zipCode   || 'No registrado' },
+    { label: 'Referencias',    value: user?.reference || 'No registradas' },
   ];
 
   return (
     <View style={common.screenCentered}>
       <View style={common.avatar}>
-        <Text style={common.avatarText}>{user.name ? user.name.charAt(0).toUpperCase() : '?'}</Text>
+        <Text style={common.avatarText}>{user?.name ? user.name.charAt(0).toUpperCase() : '?'}</Text>
       </View>
-      <Text style={styles.name}>{user.name}</Text>
-      <Text style={common.hintText}>{user.email}</Text>
+      <Text style={styles.name}>{user?.name}</Text>
+      <Text style={common.hintText}>{user?.email}</Text>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Cuenta</Text>
@@ -50,15 +51,7 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  name: { 
-    color: COLORS.textMain, 
-    fontSize: 20, fontWeight: '600', 
-    marginTop: 12 },
-  section: { 
-    alignSelf: 'stretch', 
-    marginTop: 24 },
-  sectionTitle: { 
-    color: COLORS.textMain, 
-    fontWeight: '600', 
-    marginBottom: 8 },
+  name: { color: COLORS.textMain, fontSize: 20, fontWeight: '600', marginTop: 12 },
+  section: { alignSelf: 'stretch', marginTop: 24 },
+  sectionTitle: { color: COLORS.textMain, fontWeight: '600', marginBottom: 8 },
 });

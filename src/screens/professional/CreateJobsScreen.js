@@ -1,34 +1,24 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView } from 'react-native';
-import { useJobs } from '../../context/JobsContext';
-import { useAuth } from '../../context/AuthContext';
+import { useAppContext } from '../../context/AppContext';
 import { COLORS, common } from '../../theme';
 
 const CATEGORIES = ['Plomería', 'Electricidad', 'Carpintería', 'Herrería', 'Pintura', 'Limpieza', 'Jardinería', 'Otro'];
 
 export default function CreateJobsScreen({ navigation }) {
-  const { createJob } = useJobs();
-  const { user } = useAuth();
-  const [title, setTitle] = useState('');
-  const [category, setCategory] = useState('');
+  const { createJob } = useAppContext();
+  const [title, setTitle]           = useState('');
+  const [category, setCategory]     = useState('');
   const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
-  const [area, setArea] = useState('');
+  const [price, setPrice]           = useState('');
+  const [area, setArea]             = useState('');
 
   const handlePublish = async () => {
     if (!title.trim() || !category || !description.trim()) {
       alert('Título, categoría y descripción son obligatorios');
       return;
     }
-    const job = await createJob({
-      title,
-      category,
-      description,
-      price,
-      area,
-      authorName: user.name,
-      authorEmail: user.email, // identifica al dueño del job
-    });
+    const job = await createJob({ title, category, description, price, area });
     if (job) {
       alert('¡Chambita publicada con éxito!');
       setTitle(''); setCategory(''); setDescription(''); setPrice(''); setArea('');

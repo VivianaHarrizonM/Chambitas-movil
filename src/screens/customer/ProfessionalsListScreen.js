@@ -1,8 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
-import { useServices } from '../../context/ServicesContext';
+import { useAppContext } from '../../context/AppContext';
 import { COLORS, common } from '../../theme';
-
 
 const CATEGORY_MAP = {
   plomeria:     'Plomería',
@@ -28,17 +27,12 @@ function matchesSearch(professional, query) {
 
 export default function ProfessionalsListScreen({ route, navigation }) {
   const { categoryId, categoryName, searchText = '' } = route.params;
-  const { professionals } = useServices();
+  const { professionals } = useAppContext();
 
   const filtered = professionals.filter((p) => {
-    // Búsqueda por texto libre
-    if (categoryId === 'busqueda') {
-      return matchesSearch(p, searchText);
-    }
-    // Filtro por categoría exacta
+    if (categoryId === 'busqueda') return matchesSearch(p, searchText);
     const mapped = CATEGORY_MAP[categoryId];
     if (mapped) return p.category === mapped;
-    // 'todos' u otro: muestra todos
     return true;
   });
 
@@ -54,7 +48,7 @@ export default function ProfessionalsListScreen({ route, navigation }) {
             <View style={{ flex: 1 }}>
               <Text style={styles.name}>{item.name}</Text>
               {item.jobTitle ? <Text style={styles.jobTitle}>{item.jobTitle}</Text> : null}
-              <Text style={common.hintText}>{item.category} • {item.rating.toFixed(1)} ★ • {item.distanceKm} km</Text>
+              <Text style={common.hintText}>{item.category} • {Number(item.rating).toFixed(1)} ★ • {item.distanceKm} km</Text>
               <Text style={common.hintText}>Desde ${item.priceFrom} MXN</Text>
             </View>
             <TouchableOpacity

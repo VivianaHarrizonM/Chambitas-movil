@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useServices } from '../../context/ServicesContext';
+import { useAppContext } from '../../context/AppContext';
 import { COLORS, common } from '../../theme';
 
 const STATUS_CONFIG = {
@@ -23,22 +23,30 @@ function StarRating({ value, onChange }) {
 
 export default function ServiceInProgressScreen({ route, navigation }) {
   const { serviceId } = route?.params || {};
-  const { services, professionals, updateServiceStatus, rateService } = useServices();
+  const { services, professionals, updateServiceStatus, rateService } = useAppContext();
   const [selectedRating, setSelectedRating] = useState(0);
   const [rated, setRated] = useState(false);
 
   const service      = services.find((s) => s.id === serviceId);
-  const professional = service ? professionals.find((p) => p.id === service.professionalId) : null;
+  const professional = service
+    ? professionals.find((p) => p.id === service.professionalId)
+    : null;
 
-  if (!service || !professional) return (
+  if (!service) return (
     <View style={common.screen}>
       <Text style={common.emptyText}>No hay servicios activos aún.</Text>
     </View>
   );
 
-  const isFinished    = service.status === 'finalizado';
-  const alreadyRated  = service.rating !== null && service.rating !== undefined;
-  const statusConfig  = STATUS_CONFIG[service.status] || { label: service.status, color: COLORS.textSecondary };
+  // Usa los datos del join si no se encontró el profesional en la lista
+  const proName     = professional?.name     || service.professionalName     || 'Profesional';
+  const proCategory = professional?.category || service.professionalCategory || '';
+  const proRating   = professional?.rating   || service.professionalRating   || 0;
+  const proArea     = professional?.area     || service.professionalArea     || '';
+
+  const isFinished   = service.status === 'finalizado';
+  const alreadyRated = service.rating !== null && service.rating !== undefined;
+  const statusConfig = STATUS_CONFIG[service.status] || { label: service.status, color: COLORS.textSecondary };
 
   const advanceStatus = () => {
     if (service.status === 'en_camino')   updateServiceStatus(service.id, 'en_servicio');
@@ -56,9 +64,9 @@ export default function ServiceInProgressScreen({ route, navigation }) {
       <Text style={common.heading}>Servicio en curso</Text>
 
       <View style={common.card}>
-        <Text style={styles.proName}>{professional.name}</Text>
-        <Text style={common.hintText}>{professional.category} • {professional.rating.toFixed(1)} ★</Text>
-        <Text style={common.hintText}>{professional.area}</Text>
+        <Text style={styles.proName}>{proName}</Text>
+        <Text style={common.hintText}>{proCategory} • {Number(proRating).toFixed(1)} ★</Text>
+        <Text style={common.hintText}>{proArea}</Text>
       </View>
 
       <Text style={common.label}>Estado</Text>
@@ -70,20 +78,18 @@ export default function ServiceInProgressScreen({ route, navigation }) {
 
       <Text style={[common.hintText, { marginTop: 8 }]}>{service.description || 'Sin descripción'}</Text>
 
-      
       {!isFinished && (
         <>
           <Text style={[common.label, { marginTop: 16 }]}>Acciones</Text>
-          <TouchableOpacity style={common.buttonSecondary}>
-            <Text style={common.buttonSecondaryText}>Llamar al profesional</Text>
+          <TouchableOpacity style={common.buttonSecondary} disabled>
+            <Text style={common.buttonSecondaryText}>Llamar al profesional (próximamente)</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={common.buttonSecondary}>
-            <Text style={common.buttonSecondaryText}>Abrir chat</Text>
+          <TouchableOpacity style={common.buttonSecondary} disabled>
+            <Text style={common.buttonSecondaryText}>Abrir chat (próximamente)</Text>
           </TouchableOpacity>
         </>
       )}
 
-      
       {isFinished && (
         <View style={styles.ratingContainer}>
           {alreadyRated || rated ? (

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
-import { useAuth } from '../../context/AuthContext';
+import { useAppContext } from '../../context/AppContext';
 import { COLORS, common } from '../../theme';
 
 export default function LoginScreen({ navigation }) {
-  const { login } = useAuth();
+  const { login } = useAppContext();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -54,17 +54,7 @@ export default function LoginScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  title: { 
-    fontSize: 32, 
-    fontWeight: '700', 
-    color: COLORS.primary, 
-    marginBottom: 8 },
-  subtitle: {
-     fontSize: 20, 
-     color: COLORS.primaryDark, 
-     marginBottom: 4 },
-  subtitleSmall: { 
-    fontSize: 14, 
-    color: COLORS.textSecondary, 
-    marginBottom: 24 },
+  title: { fontSize: 32, fontWeight: '700', color: COLORS.primary, marginBottom: 8 },
+  subtitle: { fontSize: 20, color: COLORS.primaryDark, marginBottom: 4 },
+  subtitleSmall: { fontSize: 14, color: COLORS.textSecondary, marginBottom: 24 },
 });

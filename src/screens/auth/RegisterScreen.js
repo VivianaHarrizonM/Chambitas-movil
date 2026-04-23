@@ -1,39 +1,36 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { useAuth } from '../../context/AuthContext';
+import { useAppContext } from '../../context/AppContext';
 import { COLORS, common } from '../../theme';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const NAME_REGEX  = /^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]{2,}$/;
 
 export default function RegisterScreen({ navigation }) {
-  const { register } = useAuth();
-  const [name, setName]       = useState('');
-  const [email, setEmail]     = useState('');
+  const { register } = useAppContext();
+  const [name, setName]         = useState('');
+  const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
-  const [type, setType]       = useState('customer');
-  const [errors, setErrors]   = useState({});
+  const [type, setType]         = useState('customer');
+  const [errors, setErrors]     = useState({});
 
   const validate = () => {
     const e = {};
-    if (!name.trim())               e.name = 'El nombre es obligatorio';
+    if (!name.trim())                       e.name = 'El nombre es obligatorio';
     else if (!NAME_REGEX.test(name.trim())) e.name = 'Solo letras y espacios, mín. 2 caracteres';
-
-    if (!email.trim())              e.email = 'El correo es obligatorio';
-    else if (!EMAIL_REGEX.test(email.trim())) e.email = 'Ingresa un correo válido (ej. correo@mail.com)';
-
-    if (!password)                  e.password = 'La contraseña es obligatoria';
-    else if (password.length < 6)   e.password = 'Mínimo 6 caracteres';
-    else if (!/[0-9]/.test(password)) e.password = 'Debe contener al menos un número';
-
+    if (!email.trim())                      e.email = 'El correo es obligatorio';
+    else if (!EMAIL_REGEX.test(email.trim())) e.email = 'Ingresa un correo válido';
+    if (!password)                          e.password = 'La contraseña es obligatoria';
+    else if (password.length < 6)           e.password = 'Mínimo 6 caracteres';
+    else if (!/[0-9]/.test(password))       e.password = 'Debe contener al menos un número';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
   const handleRegister = async () => {
     if (!validate()) return;
-    await register({ name: name.trim(), email: email.trim().toLowerCase(), password, type });
-    navigation.goBack();
+    const ok = await register({ name: name.trim(), email: email.trim().toLowerCase(), password, type });
+    if (ok) navigation.goBack();
   };
 
   const Field = ({ placeholder, value, onChange, keyboard, secure, errorKey }) => (
@@ -92,8 +89,3 @@ const styles = StyleSheet.create({
   inputError: { borderColor: COLORS.error, borderWidth: 1.5 },
   errorMsg: { color: COLORS.error, fontSize: 12, marginTop: 4, marginLeft: 4 },
 });
-
-
-
-
-

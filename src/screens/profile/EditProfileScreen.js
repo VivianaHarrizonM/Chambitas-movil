@@ -1,32 +1,36 @@
 import React, { useState } from 'react';
 import { Text, TextInput, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useAuth } from '../../context/AuthContext';
+import { useAppContext } from '../../context/AppContext';
 import { common } from '../../theme';
 
 const FIELDS = [
-  { key: 'name', label: 'Nombre *', keyboardType: 'default', placeholder: '' },
-  { key: 'phone', label: 'Teléfono *', keyboardType: 'phone-pad', placeholder: '' },
-  { key: 'address', label: 'Dirección *', keyboardType: 'default', placeholder: '' },
-  { key: 'city', label: 'Ciudad', keyboardType: 'default', placeholder: '' },
-  { key: 'zipCode', label: 'Código postal', keyboardType: 'numeric', placeholder: '' },
-  { key: 'reference', label: 'Referencias', keyboardType: 'default', placeholder: 'Ej. Casa blanca con portón negro' },
+  { key: 'name',      label: 'Nombre *',        keyboardType: 'default',   placeholder: '' },
+  { key: 'phone',     label: 'Teléfono *',       keyboardType: 'phone-pad', placeholder: '' },
+  { key: 'address',   label: 'Dirección *',      keyboardType: 'default',   placeholder: '' },
+  { key: 'city',      label: 'Ciudad',           keyboardType: 'default',   placeholder: '' },
+  { key: 'zipCode',   label: 'Código postal',    keyboardType: 'numeric',   placeholder: '' },
+  { key: 'reference', label: 'Referencias',      keyboardType: 'default',   placeholder: 'Ej. Casa blanca con portón negro' },
 ];
 
 export default function EditProfileScreen() {
   const navigation = useNavigation();
-  const { user, updateUser } = useAuth();
+  const { user, updateUser } = useAppContext();
   const [form, setForm] = useState({
-    name: user.name || '', phone: user.phone || '', address: user.address || '',
-    city: user.city || '', zipCode: user.zipCode || '', reference: user.reference || '',
+    name:      user?.name      || '',
+    phone:     user?.phone     || '',
+    address:   user?.address   || '',
+    city:      user?.city      || '',
+    zipCode:   user?.zipCode   || '',
+    reference: user?.reference || '',
   });
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.name.trim() || !form.phone.trim() || !form.address.trim()) {
       alert('Nombre, teléfono y dirección son obligatorios');
       return;
     }
-    updateUser(form);
+    await updateUser(form);
     navigation.goBack();
   };
 
@@ -54,9 +58,5 @@ export default function EditProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  title: { 
-    fontSize: 22, 
-    fontWeight: '600', 
-    textAlign: 'center', 
-    marginBottom: 8 },
+  title: { fontSize: 22, fontWeight: '600', textAlign: 'center', marginBottom: 8 },
 });
