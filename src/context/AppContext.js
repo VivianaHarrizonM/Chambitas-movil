@@ -1,23 +1,25 @@
-import React, { createContext, useContext, useState, useMemo, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 
 const AppContext = createContext();
 
 export function AppProvider({ children }) {
-  const [isLoading, setIsLoading]           = useState(true);
+  const [isLoading, setIsLoading]             = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userType, setUserType]             = useState('customer'); // 'customer' | 'professional'
-  const [user, setUser]                     = useState(null);
-  const [professionals, setProfessionals]   = useState([]);
-  const [services, setServices]             = useState([]);
-  const [jobs, setJobs]                     = useState([]);
-  const loaded = useRef(false);
+  const [userType, setUserType]               = useState('customer');
+  const [user, setUser]                       = useState(null);
+  const [professionals, setProfessionals]     = useState([]);
+  const [services, setServices]               = useState([]);
+  const [jobs, setJobs]                       = useState([]);
+
+  // Flag para evitar que onAuthStateChange pise un registro en curso
+  const isRegistering = useRef(false);
 
   // ─────────────────────────────────────────────
-  // SESIÓN — escucha cambios de auth automáticamente
+  // SESIÓN
   // ─────────────────────────────────────────────
   useEffect(() => {
-    // Verifica si ya hay sesión activa al arrancar
+    // Verificar sesión existente al arrancar
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setIsAuthenticated(true);
@@ -27,10 +29,13 @@ export function AppProvider({ children }) {
       setIsLoading(false);
     });
 
-    // Escucha login / logout en tiempo real
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'SIGNED_IN' && session) {
+          // Si estamos en el flujo de registro, el register() ya maneja
+          // la carga del perfil con el user_type correcto — no interferir
+          if (isRegistering.current) return;
+
           setIsAuthenticated(true);
           await loadUserProfile(session.user.id);
           await loadServices(session.user.id);
@@ -47,7 +52,7 @@ export function AppProvider({ children }) {
   }, []);
 
   // ─────────────────────────────────────────────
-  // CARGAR PROFESIONALES al iniciar (son públicos)
+  // CARGAR DATOS PÚBLICOS
   // ─────────────────────────────────────────────
   useEffect(() => {
     loadProfessionals();
@@ -58,7 +63,7 @@ export function AppProvider({ children }) {
   // LOADERS
   // ─────────────────────────────────────────────
   const loadUserProfile = async (userId) => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
@@ -83,7 +88,7 @@ export function AppProvider({ children }) {
   };
 
   const loadProfessionals = async () => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('professionals')
       .select('*')
       .eq('is_active', true);
@@ -103,7 +108,7 @@ export function AppProvider({ children }) {
   };
 
   const loadServices = async (userId) => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('services')
       .select('*, professionals(name, category, rating, area)')
       .eq('user_id', userId)
@@ -111,17 +116,16 @@ export function AppProvider({ children }) {
 
     if (data) {
       setServices(data.map(s => ({
-        id:             s.id,
-        professionalId: s.professional_id,
-        description:    s.description,
-        address:        s.address,
-        whenType:       s.when_type,
-        date:           s.scheduled_date,
-        time:           s.scheduled_time,
-        status:         s.status,
-        rating:         s.rating ?? null,
-        createdAt:      s.created_at,
-        // datos del profesional incluidos en el join
+        id:                   s.id,
+        professionalId:       s.professional_id,
+        description:          s.description,
+        address:              s.address,
+        whenType:             s.when_type,
+        date:                 s.scheduled_date,
+        time:                 s.scheduled_time,
+        status:               s.status,
+        rating:               s.rating ?? null,
+        createdAt:            s.created_at,
         professionalName:     s.professionals?.name     || '',
         professionalCategory: s.professionals?.category || '',
         professionalRating:   s.professionals?.rating   || 0,
@@ -131,7 +135,7 @@ export function AppProvider({ children }) {
   };
 
   const loadJobs = async () => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('jobs')
       .select('*')
       .order('created_at', { ascending: false });
@@ -154,17 +158,19 @@ export function AppProvider({ children }) {
   // ─────────────────────────────────────────────
   // AUTH
   // ─────────────────────────────────────────────
-  const login = async ({ email, password }) => {
+  const login = useCallback(async ({ email, password }) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       alert('Correo o contraseña incorrectos');
       return false;
     }
     return true;
-  };
+  }, []);
 
-  const register = async ({ name, email, password, type = 'customer' }) => {
-    // Verifica si ya existe el email (Supabase lo maneja, pero damos mensaje claro)
+  const register = useCallback(async ({ name, email, password, type = 'customer' }) => {
+    // Bloquear el listener para que no interfiera mientras registramos
+    isRegistering.current = true;
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -172,33 +178,40 @@ export function AppProvider({ children }) {
     });
 
     if (error) {
-      if (error.message.includes('already registered')) {
-        alert('Ya existe una cuenta con ese correo');
-      } else {
-        alert('Error al crear la cuenta: ' + error.message);
-      }
+      isRegistering.current = false;
+      alert(error.message.includes('already registered')
+        ? 'Ya existe una cuenta con ese correo'
+        : 'Error al crear la cuenta: ' + error.message);
       return false;
     }
 
     if (data.user) {
+      // Primero actualizar el user_type en profiles
       await supabase
         .from('profiles')
-        .update({ user_type: type })
+        .update({ user_type: type, name })
         .eq('id', data.user.id);
+
+      // Luego cargar el perfil ya con el tipo correcto
+      await loadUserProfile(data.user.id);
+      await loadServices(data.user.id);
+
+      // Ahora sí marcar como autenticado
+      setIsAuthenticated(true);
     }
 
-    alert('Cuenta creada. Ahora inicia sesión.');
+    isRegistering.current = false;
     return true;
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     await supabase.auth.signOut();
-  };
+  }, []);
 
   // ─────────────────────────────────────────────
   // PERFIL
   // ─────────────────────────────────────────────
-  const updateUser = async (updatedData) => {
+  const updateUser = useCallback(async (updatedData) => {
     if (!user?.id) return;
 
     const { error } = await supabase
@@ -216,12 +229,12 @@ export function AppProvider({ children }) {
     if (!error) {
       setUser(prev => ({ ...prev, ...updatedData }));
     }
-  };
+  }, [user?.id]);
 
   // ─────────────────────────────────────────────
   // SERVICIOS
   // ─────────────────────────────────────────────
-  const createServiceRequest = async ({
+  const createServiceRequest = useCallback(async ({
     professionalId, description, address, whenType, date, time,
   }) => {
     if (!description?.trim()) {
@@ -234,7 +247,7 @@ export function AppProvider({ children }) {
     const { data, error } = await supabase
       .from('services')
       .insert({
-        user_id:        authUser.id,
+        user_id:         authUser.id,
         professional_id: professionalId,
         description,
         address,
@@ -249,16 +262,16 @@ export function AppProvider({ children }) {
 
     if (data) {
       const newService = {
-        id:             data.id,
-        professionalId: data.professional_id,
-        description:    data.description,
-        address:        data.address,
-        whenType:       data.when_type,
-        date:           data.scheduled_date,
-        time:           data.scheduled_time,
-        status:         data.status,
-        rating:         null,
-        createdAt:      data.created_at,
+        id:                   data.id,
+        professionalId:       data.professional_id,
+        description:          data.description,
+        address:              data.address,
+        whenType:             data.when_type,
+        date:                 data.scheduled_date,
+        time:                 data.scheduled_time,
+        status:               data.status,
+        rating:               null,
+        createdAt:            data.created_at,
         professionalName:     data.professionals?.name     || '',
         professionalCategory: data.professionals?.category || '',
         professionalRating:   data.professionals?.rating   || 0,
@@ -268,9 +281,9 @@ export function AppProvider({ children }) {
       return newService;
     }
     return null;
-  };
+  }, []);
 
-  const updateServiceStatus = async (serviceId, status) => {
+  const updateServiceStatus = useCallback(async (serviceId, status) => {
     await supabase
       .from('services')
       .update({ status })
@@ -279,10 +292,9 @@ export function AppProvider({ children }) {
     setServices(prev =>
       prev.map(s => s.id === serviceId ? { ...s, status } : s)
     );
-  };
+  }, []);
 
-  // Calificación del servicio (después de finalizado)
-  const rateService = async (serviceId, rating) => {
+  const rateService = useCallback(async (serviceId, rating) => {
     await supabase
       .from('services')
       .update({ rating })
@@ -291,12 +303,12 @@ export function AppProvider({ children }) {
     setServices(prev =>
       prev.map(s => s.id === serviceId ? { ...s, rating } : s)
     );
-  };
+  }, []);
 
   // ─────────────────────────────────────────────
   // CHAMBITAS (jobs)
   // ─────────────────────────────────────────────
-  const createJob = async (jobData) => {
+  const createJob = useCallback(async (jobData) => {
     const { data: { user: authUser } } = await supabase.auth.getUser();
 
     const { data, error } = await supabase
@@ -329,15 +341,17 @@ export function AppProvider({ children }) {
       return newJob;
     }
     return null;
-  };
+  }, [user?.name]);
 
-  const deleteJob = async (jobId) => {
+  const deleteJob = useCallback(async (jobId) => {
     await supabase.from('jobs').delete().eq('id', jobId);
     setJobs(prev => prev.filter(j => j.id !== jobId));
-  };
+  }, []);
 
-  // Profesionales del seed + jobs publicados como profesionales
-  const jobsAsProfessionals = jobs.map(j => ({
+  // ─────────────────────────────────────────────
+  // HELPERS
+  // ─────────────────────────────────────────────
+  const jobsAsProfessionals = useMemo(() => jobs.map(j => ({
     id:          'job-' + j.id,
     name:        j.authorName || 'Profesional',
     category:    j.category   || 'Otro',
@@ -347,15 +361,13 @@ export function AppProvider({ children }) {
     area:        j.area         || 'Sin área',
     description: j.description  || '',
     jobTitle:    j.title        || '',
-  }));
+  })), [jobs]);
 
-  const allProfessionals = [...professionals, ...jobsAsProfessionals];
+  const allProfessionals = useMemo(() => (
+    [...professionals, ...jobsAsProfessionals]
+  ), [professionals, jobsAsProfessionals]);
 
-  // ─────────────────────────────────────────────
-  // HELPERS
-  // ─────────────────────────────────────────────
-  const isProfileComplete = !!(user?.phone && user?.address);
-
+  const isProfileComplete   = !!(user?.phone && user?.address);
   const activeServicesCount = services.filter(s => s.status !== 'finalizado').length;
 
   // ─────────────────────────────────────────────
@@ -380,8 +392,14 @@ export function AppProvider({ children }) {
     rateService,
     createJob,
     deleteJob,
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [isAuthenticated, isLoading, userType, user, professionals, services, jobs]);
+  }), [
+    isAuthenticated, isLoading, userType, user,
+    allProfessionals, services, jobs,
+    isProfileComplete, activeServicesCount,
+    login, register, logout, updateUser,
+    createServiceRequest, updateServiceStatus, rateService,
+    createJob, deleteJob,
+  ]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
