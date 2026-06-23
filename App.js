@@ -24,6 +24,7 @@ import MyRequestsScreen from './src/screens/customer/MyRequestsScreen';
 // — Professional screens
 import MyServicesScreen from './src/screens/professional/MyServicesScreen';
 import CreateJobsScreen from './src/screens/professional/CreateJobsScreen';
+import AssignedServicesScreen from './src/screens/professional/AssignedServicesScreen';
 
 // — Profile & Legal screens
 import ProfileScreen from './src/screens/profile/ProfileScreen';
@@ -35,7 +36,7 @@ const Stack = createNativeStackNavigator();
 const Tab   = createBottomTabNavigator();
 
 // ─────────────────────────────────────────────
-// HEADER GLOBAL — aplicado a todos los stacks
+// HEADER GLOBAL
 // ─────────────────────────────────────────────
 const HEADER_OPTIONS = {
   headerTitle: 'Chambitas',
@@ -108,7 +109,9 @@ function MyRequestsStack() {
 
 function CustomerNavigator() {
   const { services } = useAppContext();
-  const activeCount = services.filter(s => s.status !== 'finalizado').length;
+  const activeCount = services.filter(
+    s => s.status !== 'finalizado' && s.status !== 'rechazado'
+  ).length;
 
   return (
     <Tab.Navigator>
@@ -155,7 +158,17 @@ function ProfessionalStack() {
   );
 }
 
+function AssignedServicesStack() {
+  return (
+    <Stack.Navigator screenOptions={HEADER_OPTIONS}>
+      <Stack.Screen name="AssignedMain" component={AssignedServicesScreen} />
+    </Stack.Navigator>
+  );
+}
+
 function ProfessionalNavigator() {
+  const { pendingAssignedCount } = useAppContext();
+
   return (
     <Tab.Navigator>
       <Tab.Screen
@@ -165,6 +178,16 @@ function ProfessionalNavigator() {
           headerShown: false,
           tabBarLabel: 'Mis chambitas',
           tabBarIcon: ({ color }) => <Ionicons name="briefcase" size={24} color={color} />,
+        }}
+      />
+      <Tab.Screen
+        name="AssignedTab"
+        component={AssignedServicesStack}
+        options={{
+          headerShown: false,
+          tabBarLabel: 'Solicitudes',
+          tabBarBadge: pendingAssignedCount > 0 ? pendingAssignedCount : undefined,
+          tabBarIcon: ({ color }) => <Ionicons name="notifications" size={24} color={color} />,
         }}
       />
       <Tab.Screen

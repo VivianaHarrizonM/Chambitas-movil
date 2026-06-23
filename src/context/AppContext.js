@@ -4,38 +4,38 @@ import { supabase } from '../lib/supabase';
 const AppContext = createContext();
 
 export function AppProvider({ children }) {
-  const [isLoading, setIsLoading]             = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userType, setUserType]               = useState('customer');
-  const [user, setUser]                       = useState(null);
-  const [professionals, setProfessionals]     = useState([]);
-  const [services, setServices]               = useState([]);
-  const [jobs, setJobs]                       = useState([]);
+  const [isLoading, setIsLoading]               = useState(true);
+  const [isAuthenticated, setIsAuthenticated]   = useState(false);
+  const [userType, setUserType]                 = useState('customer');
+  const [user, setUser]                         = useState(null);
+  const [professionals, setProfessionals]       = useState([]);
+  const [services, setServices]                 = useState([]);
+  const [assignedServices, setAssignedServices] = useState([]);
+  const [jobs, setJobs]                         = useState([]);
 
-  // Flag para evitar que onAuthStateChange pise un registro en curso
   const isRegistering = useRef(false);
 
   // ─────────────────────────────────────────────
   // SESIÓN
   // ─────────────────────────────────────────────
   useEffect(() => {
-    // Verificar sesión existente al arrancar
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setIsAuthenticated(true);
-        loadUserProfile(session.user.id);
-        loadServices(session.user.id);
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error || !session) {
+        // Sesión inválida o token viejo: limpiar
+        if (error) supabase.auth.signOut();
+        setIsLoading(false);
+        return;
       }
+      setIsAuthenticated(true);
+      loadUserProfile(session.user.id);
+      loadServices(session.user.id);
       setIsLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'SIGNED_IN' && session) {
-          // Si estamos en el flujo de registro, el register() ya maneja
-          // la carga del perfil con el user_type correcto — no interferir
           if (isRegistering.current) return;
-
           setIsAuthenticated(true);
           await loadUserProfile(session.user.id);
           await loadServices(session.user.id);
@@ -44,6 +44,7 @@ export function AppProvider({ children }) {
           setUserType('customer');
           setUser(null);
           setServices([]);
+          setAssignedServices([]);
         }
       }
     );
@@ -84,6 +85,10 @@ export function AppProvider({ children }) {
         reference: data.reference || '',
         userType:  tipo,
       });
+
+      if (tipo === 'professional') {
+        await loadAssignedServices(userId);
+      }
     }
   };
 
@@ -134,6 +139,60 @@ export function AppProvider({ children }) {
     }
   };
 
+  // Servicios asignados al profesional.
+  // OJO: services.user_id apunta a auth.users, no hay FK directa a
+  // profiles, así que el join automático de Supabase falla. Por eso
+  // se hace una segunda consulta manual a profiles.
+  const loadAssignedServices = async (userId) => {
+    const { data: proData } = await supabase
+      .from('professionals')
+      .select('id')
+      .eq('user_id', userId)
+      .single();
+
+    if (!proData) return;
+
+    const { data, error } = await supabase
+      .from('services')
+      .select('*')
+      .eq('professional_id', proData.id)
+      .order('created_at', { ascending: false });
+
+    if (error || !data) {
+      console.error('Error al cargar servicios asignados:', error?.message);
+      return;
+    }
+
+    // Traer los perfiles de los clientes en una sola consulta aparte
+    const userIds = [...new Set(data.map(s => s.user_id))];
+    let profilesMap = {};
+
+    if (userIds.length > 0) {
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, name, phone, address')
+        .in('id', userIds);
+
+      (profilesData || []).forEach(p => { profilesMap[p.id] = p; });
+    }
+
+    setAssignedServices(data.map(s => ({
+      id:            s.id,
+      userId:        s.user_id,
+      description:   s.description,
+      address:       s.address,
+      whenType:      s.when_type,
+      date:          s.scheduled_date,
+      time:          s.scheduled_time,
+      status:        s.status,
+      rating:        s.rating ?? null,
+      createdAt:     s.created_at,
+      clientName:    profilesMap[s.user_id]?.name    || 'Cliente',
+      clientPhone:   profilesMap[s.user_id]?.phone   || '',
+      clientAddress: profilesMap[s.user_id]?.address || '',
+    })));
+  };
+
   const loadJobs = async () => {
     const { data } = await supabase
       .from('jobs')
@@ -168,7 +227,6 @@ export function AppProvider({ children }) {
   }, []);
 
   const register = useCallback(async ({ name, email, password, type = 'customer' }) => {
-    // Bloquear el listener para que no interfiera mientras registramos
     isRegistering.current = true;
 
     const { data, error } = await supabase.auth.signUp({
@@ -186,17 +244,13 @@ export function AppProvider({ children }) {
     }
 
     if (data.user) {
-      // Primero actualizar el user_type en profiles
       await supabase
         .from('profiles')
         .update({ user_type: type, name })
         .eq('id', data.user.id);
 
-      // Luego cargar el perfil ya con el tipo correcto
       await loadUserProfile(data.user.id);
       await loadServices(data.user.id);
-
-      // Ahora sí marcar como autenticado
       setIsAuthenticated(true);
     }
 
@@ -232,7 +286,7 @@ export function AppProvider({ children }) {
   }, [user?.id]);
 
   // ─────────────────────────────────────────────
-  // SERVICIOS
+  // SERVICIOS (cliente)
   // ─────────────────────────────────────────────
   const createServiceRequest = useCallback(async ({
     professionalId, description, address, whenType, date, time,
@@ -242,23 +296,59 @@ export function AppProvider({ children }) {
       return null;
     }
 
+    // Si viene de un job (id con prefijo 'job-'), resolver el UUID real
+    let realProfessionalId = professionalId;
+    if (String(professionalId).startsWith('job-')) {
+      const jobId = String(professionalId).replace('job-', '');
+
+      const { data: jobData } = await supabase
+        .from('jobs')
+        .select('author_id')
+        .eq('id', jobId)
+        .single();
+
+      if (!jobData) {
+        alert('No se encontró al profesional');
+        return null;
+      }
+
+      const { data: proData } = await supabase
+        .from('professionals')
+        .select('id')
+        .eq('user_id', jobData.author_id)
+        .single();
+
+      if (!proData) {
+        alert('Este profesional aún no tiene perfil completo en la plataforma');
+        return null;
+      }
+
+      realProfessionalId = proData.id;
+    }
+
     const { data: { user: authUser } } = await supabase.auth.getUser();
 
     const { data, error } = await supabase
       .from('services')
       .insert({
         user_id:         authUser.id,
-        professional_id: professionalId,
+        professional_id: realProfessionalId,
         description,
         address,
         when_type:       whenType,
         scheduled_date:  date,
         scheduled_time:  time,
-        status:          'en_camino',
+        status:          'pendiente',
         rating:          null,
       })
       .select('*, professionals(name, category, rating, area)')
       .single();
+
+    if (error) {
+      console.error('Error al crear servicio:', error.message);
+      alert('No se pudo crear la solicitud. Intenta de nuevo.');
+      return null;
+    }
 
     if (data) {
       const newService = {
@@ -280,30 +370,52 @@ export function AppProvider({ children }) {
       setServices(prev => [newService, ...prev]);
       return newService;
     }
+
     return null;
   }, []);
 
   const updateServiceStatus = useCallback(async (serviceId, status) => {
-    await supabase
+    const { error } = await supabase
       .from('services')
       .update({ status })
       .eq('id', serviceId);
 
-    setServices(prev =>
-      prev.map(s => s.id === serviceId ? { ...s, status } : s)
-    );
+    if (!error) {
+      setServices(prev =>
+        prev.map(s => s.id === serviceId ? { ...s, status } : s)
+      );
+      setAssignedServices(prev =>
+        prev.map(s => s.id === serviceId ? { ...s, status } : s)
+      );
+    }
   }, []);
 
+  const acceptService = useCallback(async (serviceId) => {
+    await updateServiceStatus(serviceId, 'en_camino');
+  }, [updateServiceStatus]);
+
+  const rejectService = useCallback(async (serviceId) => {
+    await updateServiceStatus(serviceId, 'rechazado');
+  }, [updateServiceStatus]);
+
   const rateService = useCallback(async (serviceId, rating) => {
-    await supabase
+    const { error } = await supabase
       .from('services')
       .update({ rating })
       .eq('id', serviceId);
 
-    setServices(prev =>
-      prev.map(s => s.id === serviceId ? { ...s, rating } : s)
-    );
+    if (!error) {
+      setServices(prev =>
+        prev.map(s => s.id === serviceId ? { ...s, rating } : s)
+      );
+    }
   }, []);
+
+  const refreshAssignedServices = useCallback(async () => {
+    if (user?.id && userType === 'professional') {
+      await loadAssignedServices(user.id);
+    }
+  }, [user?.id, userType]);
 
   // ─────────────────────────────────────────────
   // CHAMBITAS (jobs)
@@ -324,6 +436,11 @@ export function AppProvider({ children }) {
       })
       .select()
       .single();
+
+    if (error) {
+      console.error('Error al crear job:', error.message);
+      return null;
+    }
 
     if (data) {
       const newJob = {
@@ -367,8 +484,13 @@ export function AppProvider({ children }) {
     [...professionals, ...jobsAsProfessionals]
   ), [professionals, jobsAsProfessionals]);
 
-  const isProfileComplete   = !!(user?.phone && user?.address);
-  const activeServicesCount = services.filter(s => s.status !== 'finalizado').length;
+  const isProfileComplete    = !!(user?.phone && user?.address);
+  const activeServicesCount  = services.filter(
+    s => s.status !== 'finalizado' && s.status !== 'rechazado'
+  ).length;
+  const pendingAssignedCount = assignedServices.filter(
+    s => s.status === 'pendiente'
+  ).length;
 
   // ─────────────────────────────────────────────
   // CONTEXT VALUE
@@ -380,25 +502,31 @@ export function AppProvider({ children }) {
     user,
     professionals: allProfessionals,
     services,
+    assignedServices,
     jobs,
     isProfileComplete,
     activeServicesCount,
+    pendingAssignedCount,
     login,
     register,
     logout,
     updateUser,
     createServiceRequest,
     updateServiceStatus,
+    acceptService,
+    rejectService,
     rateService,
+    refreshAssignedServices,
     createJob,
     deleteJob,
   }), [
     isAuthenticated, isLoading, userType, user,
-    allProfessionals, services, jobs,
-    isProfileComplete, activeServicesCount,
+    allProfessionals, services, assignedServices, jobs,
+    isProfileComplete, activeServicesCount, pendingAssignedCount,
     login, register, logout, updateUser,
-    createServiceRequest, updateServiceStatus, rateService,
-    createJob, deleteJob,
+    createServiceRequest, updateServiceStatus,
+    acceptService, rejectService, rateService,
+    refreshAssignedServices, createJob, deleteJob,
   ]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
