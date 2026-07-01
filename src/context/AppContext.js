@@ -21,7 +21,6 @@ export function AppProvider({ children }) {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error || !session) {
-        // Sesión inválida o token viejo: limpiar
         if (error) supabase.auth.signOut();
         setIsLoading(false);
         return;
@@ -139,10 +138,6 @@ export function AppProvider({ children }) {
     }
   };
 
-  // Servicios asignados al profesional.
-  // OJO: services.user_id apunta a auth.users, no hay FK directa a
-  // profiles, así que el join automático de Supabase falla. Por eso
-  // se hace una segunda consulta manual a profiles.
   const loadAssignedServices = async (userId) => {
     const { data: proData } = await supabase
       .from('professionals')
@@ -163,7 +158,6 @@ export function AppProvider({ children }) {
       return;
     }
 
-    // Traer los perfiles de los clientes en una sola consulta aparte
     const userIds = [...new Set(data.map(s => s.user_id))];
     let profilesMap = {};
 
@@ -296,7 +290,6 @@ export function AppProvider({ children }) {
       return null;
     }
 
-    // Si viene de un job (id con prefijo 'job-'), resolver el UUID real
     let realProfessionalId = professionalId;
     if (String(professionalId).startsWith('job-')) {
       const jobId = String(professionalId).replace('job-', '');
@@ -411,6 +404,14 @@ export function AppProvider({ children }) {
     }
   }, []);
 
+  // Refrescar servicios del cliente desde Supabase
+  const refreshServices = useCallback(async () => {
+    if (user?.id) {
+      await loadServices(user.id);
+    }
+  }, [user?.id]);
+
+  // Refrescar servicios asignados al profesional
   const refreshAssignedServices = useCallback(async () => {
     if (user?.id && userType === 'professional') {
       await loadAssignedServices(user.id);
@@ -516,6 +517,7 @@ export function AppProvider({ children }) {
     acceptService,
     rejectService,
     rateService,
+    refreshServices,
     refreshAssignedServices,
     createJob,
     deleteJob,
@@ -526,7 +528,8 @@ export function AppProvider({ children }) {
     login, register, logout, updateUser,
     createServiceRequest, updateServiceStatus,
     acceptService, rejectService, rateService,
-    refreshAssignedServices, createJob, deleteJob,
+    refreshServices, refreshAssignedServices,
+    createJob, deleteJob,
   ]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

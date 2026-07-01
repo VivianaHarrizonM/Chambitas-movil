@@ -17,14 +17,21 @@ const STATUS_CONFIG = {
 
 const TABS = ['Pendientes', 'Activos', 'Historial'];
 
+function formatSchedule(item) {
+  if (item.whenType === 'programado' && item.date) {
+    return `${item.date}${item.time ? ' a las ' + item.time : ''}`;
+  }
+  return 'Lo antes posible';
+}
+
 export default function AssignedServicesScreen({ navigation }) {
- const {
-  assignedServices = [],  
-  acceptService,
-  rejectService,
-  updateServiceStatus,
-  refreshAssignedServices,
-} = useAppContext();
+  const {
+    assignedServices = [],
+    acceptService,
+    rejectService,
+    updateServiceStatus,
+    refreshAssignedServices,
+  } = useAppContext();
 
   const [activeTab, setActiveTab]   = useState('Pendientes');
   const [refreshing, setRefreshing] = useState(false);
@@ -137,6 +144,18 @@ export default function AssignedServicesScreen({ navigation }) {
           {item.description || 'Sin descripción'}
         </Text>
 
+        {/* ── Cuándo ── */}
+        <View style={styles.infoRow}>
+          <Ionicons
+            name={item.whenType === 'programado' ? 'calendar-outline' : 'flash-outline'}
+            size={13}
+            color={COLORS.primaryDark}
+          />
+          <Text style={[styles.infoText, { color: COLORS.primaryDark, fontWeight: '500' }]}>
+            {formatSchedule(item)}
+          </Text>
+        </View>
+
         {/* ── Dirección ── */}
         {item.address ? (
           <View style={styles.infoRow}>
@@ -150,14 +169,6 @@ export default function AssignedServicesScreen({ navigation }) {
           <View style={styles.infoRow}>
             <Ionicons name="call-outline" size={13} color={COLORS.textSecondary} />
             <Text style={styles.infoText}>{item.clientPhone}</Text>
-          </View>
-        ) : null}
-
-        {/* ── Programado ── */}
-        {item.whenType === 'programado' && item.date ? (
-          <View style={styles.infoRow}>
-            <Ionicons name="calendar-outline" size={13} color={COLORS.textSecondary} />
-            <Text style={styles.infoText}>{item.date} {item.time}</Text>
           </View>
         ) : null}
 
@@ -262,48 +273,32 @@ export default function AssignedServicesScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  // Tabs
   tabsRow:       { flexDirection: 'row', marginBottom: 16, borderRadius: 12, backgroundColor: COLORS.inputBg, padding: 4 },
   tab:           { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 10 },
   tabActive:     { backgroundColor: COLORS.white, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
   tabText:       { color: COLORS.textSecondary, fontWeight: '500', fontSize: 13 },
   tabTextActive: { color: COLORS.textMain, fontWeight: '700' },
-
-  // Card
-  card:       { backgroundColor: COLORS.inputBg, borderRadius: 16, borderWidth: 1, borderColor: COLORS.border, padding: 14, marginBottom: 10 },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-
-  // Cliente
+  card:          { backgroundColor: COLORS.inputBg, borderRadius: 16, borderWidth: 1, borderColor: COLORS.border, padding: 14, marginBottom: 10 },
+  cardHeader:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   clientInfo:       { flexDirection: 'row', alignItems: 'center', flex: 1 },
   clientAvatar:     { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.primaryDark, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
   clientAvatarText: { color: COLORS.white, fontWeight: '700', fontSize: 16 },
   clientName:       { color: COLORS.textMain, fontWeight: '600', fontSize: 14 },
   cardDate:         { color: COLORS.textSecondary, fontSize: 11, marginTop: 1 },
-
-  // Badge
-  badge:     { flexDirection: 'row', alignItems: 'center', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 },
-  badgeText: { color: '#fff', fontSize: 11, fontWeight: '600' },
-
-  // Info
-  description: { color: COLORS.textSecondary, fontSize: 13, marginBottom: 8, lineHeight: 18 },
-  infoRow:     { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
-  infoText:    { color: COLORS.textSecondary, fontSize: 12, marginLeft: 5, flex: 1 },
-
-  // Acciones pendiente
-  actionsRow:   { flexDirection: 'row', gap: 8, marginTop: 12 },
-  rejectButton: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: COLORS.error, gap: 4 },
-  rejectText:   { color: COLORS.error, fontWeight: '600', fontSize: 13 },
-  acceptButton: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, borderRadius: 10, backgroundColor: '#22c55e', gap: 4 },
-  acceptText:   { color: '#fff', fontWeight: '600', fontSize: 13 },
-
-  // Acción activo
+  badge:         { flexDirection: 'row', alignItems: 'center', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 },
+  badgeText:     { color: '#fff', fontSize: 11, fontWeight: '600' },
+  description:   { color: COLORS.textSecondary, fontSize: 13, marginBottom: 8, lineHeight: 18 },
+  infoRow:       { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
+  infoText:      { color: COLORS.textSecondary, fontSize: 12, marginLeft: 5, flex: 1 },
+  actionsRow:    { flexDirection: 'row', gap: 8, marginTop: 12 },
+  rejectButton:  { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: COLORS.error, gap: 4 },
+  rejectText:    { color: COLORS.error, fontWeight: '600', fontSize: 13 },
+  acceptButton:  { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, borderRadius: 10, backgroundColor: '#22c55e', gap: 4 },
+  acceptText:    { color: '#fff', fontWeight: '600', fontSize: 13 },
   advanceButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, paddingVertical: 10, paddingHorizontal: 14, borderRadius: 10, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.white },
   advanceText:   { color: COLORS.primaryDark, fontWeight: '600', fontSize: 13 },
-
-  buttonDisabled: { opacity: 0.6 },
-
-  // Empty
-  emptyContainer: { alignItems: 'center', marginTop: 48 },
-  emptyIcon:      { fontSize: 40, marginBottom: 12 },
-  emptyTitle:     { fontSize: 16, fontWeight: '600', color: COLORS.textMain, marginBottom: 8 },
+  buttonDisabled:{ opacity: 0.6 },
+  emptyContainer:{ alignItems: 'center', marginTop: 48 },
+  emptyIcon:     { fontSize: 40, marginBottom: 12 },
+  emptyTitle:    { fontSize: 16, fontWeight: '600', color: COLORS.textMain, marginBottom: 8 },
 });

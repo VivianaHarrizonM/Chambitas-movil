@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "chambitas",
+    "name": "Chambitas",
     "slug": "chambitas",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -13,17 +13,44 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.chambitas.app",
+      "infoPlist": {
+        "NSUserNotificationsUsageDescription": "Chambitas necesita enviarte notificaciones para avisarte cuando lleguen nuevas solicitudes de servicio."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.chambitas.app",
+      "permissions": [
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.VIBRATE",
+        "android.permission.POST_NOTIFICATIONS"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#F4A300",
+          "defaultChannel": "default",
+          "sounds": []
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "9f39637a-9fc4-4e93-9a12-5d6275b45143"
+      }
+    },
+    "owner": "vivianahms-team"
   }
 }

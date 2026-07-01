@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppContext } from '../../context/AppContext';
 import { COLORS, common } from '../../theme';
@@ -22,12 +22,19 @@ function formatSchedule(item) {
 }
 
 export default function MyRequestsScreen({ navigation }) {
-  const { services, professionals } = useAppContext();
+  const { services, professionals, refreshServices } = useAppContext();
   const [activeTab, setActiveTab] = useState('Activos');
+  const [refreshing, setRefreshing] = useState(false);
 
   const activos   = services.filter(s => s.status !== 'finalizado' && s.status !== 'rechazado');
   const historial = services.filter(s => s.status === 'finalizado' || s.status === 'rechazado');
   const data      = activeTab === 'Activos' ? activos : historial;
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refreshServices();
+    setRefreshing(false);
+  }, [refreshServices]);
 
   const renderItem = ({ item }) => {
     const professional = professionals.find(p => p.id === item.professionalId);
@@ -103,6 +110,14 @@ export default function MyRequestsScreen({ navigation }) {
         renderItem={renderItem}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 20 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[COLORS.primary]}
+            tintColor={COLORS.primary}
+          />
+        }
         ListEmptyComponent={
           <View style={styles.empty}>
             <Text style={styles.emptyIcon}>{activeTab === 'Activos' ? '🔧' : '📋'}</Text>
@@ -127,22 +142,17 @@ const styles = StyleSheet.create({
   tabActive:      { backgroundColor: COLORS.white, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
   tabText:        { color: COLORS.textSecondary, fontWeight: '500', fontSize: 14 },
   tabTextActive:  { color: COLORS.textMain, fontWeight: '700' },
-
-  cardHeader:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-  proName:         { color: COLORS.textMain, fontWeight: '600', fontSize: 15, flex: 1 },
-  proNameFinished: { color: COLORS.textSecondary },
-  cardFinished:    { opacity: 0.75 },
-
-  badge:     { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3, marginLeft: 8 },
-  badgeText: { color: '#fff', fontSize: 11, fontWeight: '600' },
-
-  scheduleRow: { marginTop: 6 },
-  scheduleText:{ fontSize: 12, color: COLORS.primaryDark, fontWeight: '500' },
-
-  dateRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
-  date:    { color: COLORS.textSecondary, fontSize: 11 },
-
-  empty:      { alignItems: 'center', marginTop: 40 },
-  emptyIcon:  { fontSize: 40, marginBottom: 10 },
-  emptyTitle: { fontSize: 16, fontWeight: '600', color: COLORS.textMain, marginBottom: 6 },
+  cardHeader:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+  proName:        { color: COLORS.textMain, fontWeight: '600', fontSize: 15, flex: 1 },
+  proNameFinished:{ color: COLORS.textSecondary },
+  cardFinished:   { opacity: 0.75 },
+  badge:          { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3, marginLeft: 8 },
+  badgeText:      { color: '#fff', fontSize: 11, fontWeight: '600' },
+  scheduleRow:    { marginTop: 6 },
+  scheduleText:   { fontSize: 12, color: COLORS.primaryDark, fontWeight: '500' },
+  dateRow:        { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
+  date:           { color: COLORS.textSecondary, fontSize: 11 },
+  empty:          { alignItems: 'center', marginTop: 40 },
+  emptyIcon:      { fontSize: 40, marginBottom: 10 },
+  emptyTitle:     { fontSize: 16, fontWeight: '600', color: COLORS.textMain, marginBottom: 6 },
 });

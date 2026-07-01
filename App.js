@@ -5,6 +5,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import { useNotifications } from './src/hooks/useNotifications';
 
 import { AppProvider, useAppContext } from './src/context/AppContext';
 import { COLORS } from './src/theme';
@@ -231,9 +232,11 @@ function ProfileStack() {
 // ─────────────────────────────────────────────
 function RootNavigator() {
   const { isAuthenticated, isLoading, user } = useAppContext();
-
+  
+  // Activar cuando se haga build de producción
+  // useNotifications(user?.id);
+  
   if (isLoading) return <LoadingScreen />;
-
   return (
     <NavigationContainer>
       {isAuthenticated
