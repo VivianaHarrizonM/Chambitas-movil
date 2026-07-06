@@ -246,6 +246,11 @@ export function AppProvider({ children }) {
       await loadUserProfile(data.user.id);
       await loadServices(data.user.id);
       setIsAuthenticated(true);
+    } else {
+      // Supabase requiere confirmación de email
+      isRegistering.current = false;
+      alert('Revisa tu correo para confirmar tu cuenta');
+      return false;
     }
 
     isRegistering.current = false;
@@ -404,14 +409,12 @@ export function AppProvider({ children }) {
     }
   }, []);
 
-  // Refrescar servicios del cliente desde Supabase
   const refreshServices = useCallback(async () => {
     if (user?.id) {
       await loadServices(user.id);
     }
   }, [user?.id]);
 
-  // Refrescar servicios asignados al profesional
   const refreshAssignedServices = useCallback(async () => {
     if (user?.id && userType === 'professional') {
       await loadAssignedServices(user.id);
