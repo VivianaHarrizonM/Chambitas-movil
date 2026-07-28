@@ -44,6 +44,7 @@ export function AppProvider({ children }) {
           setUser(null);
           setServices([]);
           setAssignedServices([]);
+          setProfessionals([]);
         }
       }
     );
@@ -55,7 +56,6 @@ export function AppProvider({ children }) {
   // CARGAR DATOS PÚBLICOS
   // ─────────────────────────────────────────────
   useEffect(() => {
-    loadProfessionals();
     loadJobs();
   }, []);
 
@@ -72,6 +72,7 @@ export function AppProvider({ children }) {
     if (data) {
       const { data: { user: authUser } } = await supabase.auth.getUser();
       const tipo = data.user_type || 'customer';
+      const city = data.city || '';
       setUserType(tipo);
       setUser({
         id:        data.id,
@@ -79,11 +80,14 @@ export function AppProvider({ children }) {
         email:     authUser?.email || '',
         phone:     data.phone     || '',
         address:   data.address   || '',
-        city:      data.city      || '',
+        city,
         zipCode:   data.zip_code  || '',
         reference: data.reference || '',
         userType:  tipo,
       });
+
+      // Cargar profesionales filtrados por ciudad del usuario
+      await loadProfessionals(city);
 
       if (tipo === 'professional') {
         await loadAssignedServices(userId);
@@ -91,25 +95,50 @@ export function AppProvider({ children }) {
     }
   };
 
-  const loadProfessionals = async () => {
-    const { data } = await supabase
+  // Carga profesionales — filtra por ciudad si está disponible
+  // Si no hay ciudad o no hay resultados en la ciudad, muestra todos
+  const loadProfessionals = async (city = '') => {
+    let query = supabase
       .from('professionals')
       .select('*')
       .eq('is_active', true);
 
+    // Filtrar por ciudad si el usuario tiene una registrada
+    if (city?.trim()) {
+      query = query.ilike('area', `%${city.trim()}%`);
+    }
+
+    const { data } = await query;
+
+    // Si no hay resultados con filtro de ciudad, cargar todos
+    if ((!data || data.length === 0) && city?.trim()) {
+      const { data: allData } = await supabase
+        .from('professionals')
+        .select('*')
+        .eq('is_active', true);
+
+      if (allData) {
+        setProfessionals(allData.map(mapProfessional));
+      }
+      return;
+    }
+
     if (data) {
-      setProfessionals(data.map(p => ({
-        id:          p.id,
-        name:        p.name,
-        category:    p.category,
-        rating:      p.rating,
-        distanceKm:  p.distance_km,
-        priceFrom:   p.price_from,
-        area:        p.area,
-        description: p.description,
-      })));
+      setProfessionals(data.map(mapProfessional));
     }
   };
+
+  // Helper para mapear profesional de Supabase al formato de la app
+  const mapProfessional = (p) => ({
+    id:          p.id,
+    name:        p.name,
+    category:    p.category,
+    rating:      p.rating,
+    distanceKm:  p.distance_km,
+    priceFrom:   p.price_from,
+    area:        p.area,
+    description: p.description,
+  });
 
   const loadServices = async (userId) => {
     const { data } = await supabase
@@ -247,7 +276,6 @@ export function AppProvider({ children }) {
       await loadServices(data.user.id);
       setIsAuthenticated(true);
     } else {
-      // Supabase requiere confirmación de email
       isRegistering.current = false;
       alert('Revisa tu correo para confirmar tu cuenta');
       return false;
@@ -281,6 +309,8 @@ export function AppProvider({ children }) {
 
     if (!error) {
       setUser(prev => ({ ...prev, ...updatedData }));
+      // Recargar profesionales con la nueva ciudad
+      await loadProfessionals(updatedData.city);
     }
   }, [user?.id]);
 
@@ -472,17 +502,27 @@ export function AppProvider({ children }) {
   // ─────────────────────────────────────────────
   // HELPERS
   // ─────────────────────────────────────────────
-  const jobsAsProfessionals = useMemo(() => jobs.map(j => ({
-    id:          'job-' + j.id,
-    name:        j.authorName || 'Profesional',
-    category:    j.category   || 'Otro',
-    rating:      5.0,
-    distanceKm:  0,
-    priceFrom:   Number(j.price) || 0,
-    area:        j.area         || 'Sin área',
-    description: j.description  || '',
-    jobTitle:    j.title        || '',
-  })), [jobs]);
+  const jobsAsProfessionals = useMemo(() => {
+    const userCity = user?.city?.trim().toLowerCase() || '';
+
+    return jobs
+      .filter(j => {
+        // Si el usuario tiene ciudad, filtrar jobs por área
+        if (!userCity) return true;
+        return j.area?.toLowerCase().includes(userCity);
+      })
+      .map(j => ({
+        id:          'job-' + j.id,
+        name:        j.authorName || 'Profesional',
+        category:    j.category   || 'Otro',
+        rating:      5.0,
+        distanceKm:  0,
+        priceFrom:   Number(j.price) || 0,
+        area:        j.area         || 'Sin área',
+        description: j.description  || '',
+        jobTitle:    j.title        || '',
+      }));
+  }, [jobs, user?.city]);
 
   const allProfessionals = useMemo(() => (
     [...professionals, ...jobsAsProfessionals]
